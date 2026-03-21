@@ -174,7 +174,10 @@ namespace FCG
 
             RaycastHit hit;
 
-            GameObject[] tempArray = GameObject.FindObjectsOfType(typeof(GameObject)).Select(g => g as GameObject).Where(g => g.name == "RayCast-HideLadder").ToArray();
+            //GameObject[] tempArray = GameObject.FindObjectsOfType(typeof(GameObject)).Select(g => g as GameObject).Where(g => g.name == "RayCast-HideLadder").ToArray();
+
+            GameObject[] tempArray =  SearchUtility.FindAllObjectsByName("RayCast-HideLadder");
+
             foreach (GameObject ray in tempArray)
             {
 
@@ -276,6 +279,7 @@ namespace FCG
 
             if (GUILayout.Button("Generate Buildings"))
             {
+                
                 if (!GameObject.Find("Marcador")) return;
 
                 LoadAssets(true);
@@ -349,7 +353,7 @@ namespace FCG
 
 
 
-
+            
             GUILayout.Space(10);
 
 
@@ -365,8 +369,8 @@ namespace FCG
 
             GUILayout.Space(15);
 
-
-
+            
+            
 
             int rh = trafficLightHand;
 
@@ -377,7 +381,7 @@ namespace FCG
 
 
             trafficLightHand = GUILayout.SelectionGrid(trafficLightHand, selStrings, 2);
-
+            
             GUILayout.Space(5);
 
 
@@ -436,7 +440,8 @@ namespace FCG
                 GameObject module;
                 GameObject[] my_Modules;
 
-                my_Modules = GameObject.FindObjectsOfType(typeof(GameObject)).Select(g => g as GameObject).Where(g => g.name == "Marcador").ToArray();
+                //my_Modules = GameObject.FindObjectsOfType(typeof(GameObject)).Select(g => g as GameObject).Where(g => g.name == "Marcador").ToArray();
+                my_Modules = SearchUtility.FindAllObjectsByName("Marcador");
 
                 tt = my_Modules.Length;
 
@@ -497,8 +502,9 @@ namespace FCG
 
 
 
-                GameObject[] myModules = GameObject.FindObjectsOfType(typeof(GameObject)).Select(g => g as GameObject).Where(g => g.name == "_block").ToArray();
+                //GameObject[] myModules = GameObject.FindObjectsOfType(typeof(GameObject)).Select(g => g as GameObject).Where(g => g.name == "_block").ToArray();
 
+                GameObject[] myModules = SearchUtility.FindAllObjectsByName("_block");
 
                 tt = myModules.Length;
 
@@ -560,7 +566,7 @@ namespace FCG
 
                 if (!trafficSystem.player)
                     trafficSystem.SetCameraPlayer();
-
+                
                 if (GameObject.Find("CarContainer"))
                     DestroyImmediate(GameObject.Find("CarContainer"));
 

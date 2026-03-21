@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2211907383500271752}
   - component: {fileID: 74343649395529621}
-  - component: {fileID: 4703262292448163768}
   m_Layer: 0
   m_Name: DayNight
   m_TagString: Untagged
@@ -62,9 +61,9 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 9bca27a97bc9dea4dbcb4003ad4100ea, type: 2}
   - {fileID: 2100000, guid: 6f5a26488c1118c4a92c967fe7031ec9, type: 2}
   - {fileID: 2100000, guid: eb92e388c54ed3046bbbeb5c368e533d, type: 2}
-  - {fileID: 2100000, guid: e35a7b335e9c07d4799a52f6f037e77e, type: 2}
   - {fileID: 2100000, guid: 9b65cc251c5ad134db1036b0dc7d7584, type: 2}
   - {fileID: 2100000, guid: 2c60b86a590b7e14d85eaf851f33ec15, type: 2}
+  - {fileID: 2100000, guid: e35a7b335e9c07d4799a52f6f037e77e, type: 2}
   materialNight:
   - {fileID: 2100000, guid: 6e293f9a44549ff4d9affe9cca88897b, type: 2}
   - {fileID: 2100000, guid: 990d037d49a0251418a8449875e67fcc, type: 2}
@@ -77,41 +76,33 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 51e3cf8896e503b47984f524006bf3e4, type: 2}
   - {fileID: 2100000, guid: 20f38d0d2624dd442b62f5e73e72fc23, type: 2}
   - {fileID: 2100000, guid: 855e5c57138a7a94aa65fa57f8b77544, type: 2}
-  - {fileID: 2100000, guid: 451d7ef9ceb76214a973ab9058539e7a, type: 2}
-  - {fileID: 2100000, guid: 8f7db64e7bcccd24ea8aac58d4dfffe6, type: 2}
-  - {fileID: 2100000, guid: a40b2d8c264d25a499b4fafe805f776e, type: 2}
-  - {fileID: 2100000, guid: 328f1cf71104a254fb99875f587dc726, type: 2}
-  - {fileID: 2100000, guid: a7d32d8b23664014f9a11264f2155475, type: 2}
+  - {fileID: 2100000, guid: 592e5c00605604d47a129cfc15ead865, type: 2}
+  - {fileID: 2100000, guid: d37479cbd5495ce4ba0e7950ab5277de, type: 2}
+  - {fileID: 2100000, guid: 43bdf8a66a5b238428957a3f4f55af89, type: 2}
+  - {fileID: 2100000, guid: b18802a45910b9d4aba6bb879ee76b75, type: 2}
   - {fileID: 2100000, guid: 51e3cf8896e503b47984f524006bf3e4, type: 2}
-  volumeProfile_Day: {fileID: 11400000, guid: 4b809e1fdcb76ea40aff443e11b59643, type: 2}
-  volumeProfile_Night: {fileID: 11400000, guid: 801da2eb7411f4d4f8d220bf9e77bdee,
-    type: 2}
+  - {fileID: 2100000, guid: c2a6d831324789e44ba77e908a357b96, type: 2}
+  skyBoxDay: {fileID: 2100000, guid: bd8c405ef03e9444abdb6b12bcc34f40, type: 2}
+  skyBoxNight: {fileID: 2100000, guid: bf0f57d86098fc34ba3f71cc9d491765, type: 2}
   isNight: 0
-  night: 0
+  isMoonLight: 0
   isSpotLights: 1
+  night: 0
+  moonLight: 0
   spotLights: 1
-  intenseMoonLight: 442.1053
-  _intenseMoonLight: 442.1053
-  intenseSunLight: 10652.632
-  _intenseSunLight: 10652.632
-  temperatureSunLight: 5600
-  _temperatureSunLight: 5600
-  temperatureMoonLight: 10000
-  _temperatureMoonLight: 10000
---- !u!114 &4703262292448163768
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2309671740925911801}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_IsGlobal: 1
-  priority: 0
-  blendDistance: 0
-  weight: 1
-  sharedProfile: {fileID: 11400000, guid: 801da2eb7411f4d4f8d220bf9e77bdee, type: 2}
+  intenseMoonLight: 40.90909
+  _intenseMoonLight: 40.90909
+  intenseSunLight: 150
+  _intenseSunLight: 150
+  skyColorDay: {r: 0.254717, g: 0.254717, b: 0.254717, a: 1}
+  equatorColorDay: {r: 0.7264151, g: 0.7264151, b: 0.7264151, a: 1}
+  _skyColorDay: {r: 0.254717, g: 0.254717, b: 0.254717, a: 1}
+  _equatorColorDay: {r: 0.7264151, g: 0.7264151, b: 0.7264151, a: 1}
+  skyColorNight: {r: 0.5471698, g: 0.5471698, b: 0.5471698, a: 1}
+  equatorColorNight: {r: 0.254717, g: 0.254717, b: 0.254717, a: 1}
+  _skyColorNight: {r: 0.5471698, g: 0.5471698, b: 0.5471698, a: 1}
+  _equatorColorNight: {r: 0.254717, g: 0.254717, b: 0.254717, a: 1}
+  sunLightColor: {r: 1, g: 0.9005376, b: 0.75, a: 1}
+  _sunLightColor: {r: 0, g: 0, b: 0, a: 0}
+  moonLightColor: {r: 0.37900499, g: 0.37900499, b: 0.4811321, a: 1}
+  _moonLightColor: {r: 0, g: 0, b: 0, a: 0}

@@ -598,14 +598,12 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: dcfa729487ccea842a5270cad65d7019, type: 3}
 --- !u!4 &3934377709269968788 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 400000, guid: dcfa729487ccea842a5270cad65d7019,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 400000, guid: dcfa729487ccea842a5270cad65d7019, type: 3}
   m_PrefabInstance: {fileID: 3934377709270367508}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &3934377709270465462 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 100002, guid: dcfa729487ccea842a5270cad65d7019,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 100002, guid: dcfa729487ccea842a5270cad65d7019, type: 3}
   m_PrefabInstance: {fileID: 3934377709270367508}
   m_PrefabAsset: {fileID: 0}
 --- !u!64 &9200515922343803240
@@ -685,8 +683,7 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5699153184802637796, guid: 7821f128d922a9a43ba44abef5540f1e,
-        type: 3}
+    - target: {fileID: 5699153184802637796, guid: 7821f128d922a9a43ba44abef5540f1e, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
@@ -694,8 +691,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 7821f128d922a9a43ba44abef5540f1e, type: 3}
 --- !u!4 &5985480756706413123 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 4326405576945248, guid: 7821f128d922a9a43ba44abef5540f1e,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 4326405576945248, guid: 7821f128d922a9a43ba44abef5540f1e, type: 3}
   m_PrefabInstance: {fileID: 5989767570972828707}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &6479974831716115996
@@ -761,8 +757,7 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5699153184802637796, guid: 7821f128d922a9a43ba44abef5540f1e,
-        type: 3}
+    - target: {fileID: 5699153184802637796, guid: 7821f128d922a9a43ba44abef5540f1e, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
@@ -770,7 +765,6 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 7821f128d922a9a43ba44abef5540f1e, type: 3}
 --- !u!4 &6476774472144144508 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 4326405576945248, guid: 7821f128d922a9a43ba44abef5540f1e,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 4326405576945248, guid: 7821f128d922a9a43ba44abef5540f1e, type: 3}
   m_PrefabInstance: {fileID: 6479974831716115996}
   m_PrefabAsset: {fileID: 0}

@@ -109,6 +109,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Flowerbed-07
       objectReference: {fileID: 0}
+    - target: {fileID: 1091805407325710, guid: 33bdbb4efb3a3af48a07f4fe23013757, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     - target: {fileID: 4892414429499642, guid: 33bdbb4efb3a3af48a07f4fe23013757, type: 3}
       propertyPath: m_RootOrder
       value: 0
@@ -157,7 +161,6 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 33bdbb4efb3a3af48a07f4fe23013757, type: 3}
 --- !u!4 &2266006533957017163 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 4892414429499642, guid: 33bdbb4efb3a3af48a07f4fe23013757,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 4892414429499642, guid: 33bdbb4efb3a3af48a07f4fe23013757, type: 3}
   m_PrefabInstance: {fileID: 2261679268504456881}
   m_PrefabAsset: {fileID: 0}

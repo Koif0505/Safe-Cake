@@ -203,13 +203,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2846572895459554053, guid: 86d471e8ed588bc4a822b16663c95f46,
-        type: 3}
+    - target: {fileID: 2846572895459554053, guid: 86d471e8ed588bc4a822b16663c95f46, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 4
       objectReference: {fileID: 0}
-    - target: {fileID: 6063956293147575406, guid: 86d471e8ed588bc4a822b16663c95f46,
-        type: 3}
+    - target: {fileID: 6063956293147575406, guid: 86d471e8ed588bc4a822b16663c95f46, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
@@ -218,8 +216,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 86d471e8ed588bc4a822b16663c95f46, type: 3}
 --- !u!1 &112642353867027570 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 100002, guid: 86d471e8ed588bc4a822b16663c95f46,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 100002, guid: 86d471e8ed588bc4a822b16663c95f46, type: 3}
   m_PrefabInstance: {fileID: 112642353867125456}
   m_PrefabAsset: {fileID: 0}
 --- !u!64 &3214598728898614450
@@ -238,7 +235,6 @@ MeshCollider:
   m_Mesh: {fileID: 4300002, guid: 86d471e8ed588bc4a822b16663c95f46, type: 3}
 --- !u!4 &112642353867515984 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 400000, guid: 86d471e8ed588bc4a822b16663c95f46,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 400000, guid: 86d471e8ed588bc4a822b16663c95f46, type: 3}
   m_PrefabInstance: {fileID: 112642353867125456}
   m_PrefabAsset: {fileID: 0}

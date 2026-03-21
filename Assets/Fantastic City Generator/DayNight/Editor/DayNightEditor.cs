@@ -2,203 +2,280 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UnityEngine.Rendering;
+using UnityEditor.SceneManagement;
 
-[CustomEditor(typeof(DayNight))]
-public class DayNightEditor : Editor
+namespace FCG
 {
 
-    DayNight dayNight;
-
-
-    public override void OnInspectorGUI()
+    [CustomEditor(typeof(DayNight))]
+    public class DayNightEditor : Editor
     {
-        base.OnInspectorGUI();
 
-        dayNight = (DayNight)target;
+        DayNight dayNight;
 
-        
 
-        if (dayNight.gameObject.activeInHierarchy)
+        public override void OnInspectorGUI()
         {
+            base.OnInspectorGUI();
 
+            dayNight = (DayNight)target;
 
-            GUILayout.Space(10);
-
-            if (!dayNight.directionalLight)
+            if (dayNight.gameObject.activeInHierarchy)
             {
-                GUILayout.Label("Warning: You need to set Directional Light");
+
+
                 GUILayout.Space(10);
-            }
 
-
-            if (GUILayout.Button("Day"))
-            {
-                dayNight.isNight = false;
-            }
-
-            GUILayout.Space(5);
-
-            if (GUILayout.Button("Night"))
-            {
-                dayNight.isNight = true;
-            }
-            
-            GUILayout.Space(5);
-
-            if (!dayNight.isNight && dayNight.directionalLight)
-            {
-                EditorGUILayout.BeginHorizontal();
-
-                GUILayout.Label("Sun Intensity: " + dayNight.intenseSunLight);
-
-                dayNight.intenseSunLight = GUILayout.HorizontalSlider(dayNight.intenseSunLight, 4000, 12000, GUILayout.Width(200));
-                if (dayNight._intenseSunLight != dayNight.intenseSunLight)
+                if (!dayNight.directionalLight)
                 {
-                    dayNight._intenseSunLight = dayNight.intenseSunLight;
-                    dayNight.SetDirectionalLight();
+                    GUILayout.Label("Warning: You need to set Directional Light");
+                    GUILayout.Space(10);
                 }
-                EditorGUILayout.EndHorizontal();
 
-                GUILayout.Space(5);
+                EditorGUILayout.BeginVertical();
 
-                EditorGUILayout.BeginHorizontal();
+                GUILayout.Space(10);
 
-                GUILayout.Label("Sun Temperature: " + dayNight.temperatureSunLight);
 
-                dayNight.temperatureSunLight = GUILayout.HorizontalSlider(dayNight.temperatureSunLight, 1000, 20000, GUILayout.Width(200));
-                if (dayNight._temperatureSunLight != dayNight.temperatureSunLight)
+                if (GUILayout.Button("Day"))
                 {
-                    dayNight._temperatureSunLight = dayNight.temperatureSunLight;
-                    dayNight.SetDirectionalLight();
+                    dayNight.isNight = false;
+
                 }
-                
-                EditorGUILayout.EndHorizontal();
-
-                GUILayout.Space(20);
-            }
 
 
-
-            if (dayNight.night != dayNight.isNight)
-            {
-                dayNight.night = dayNight.isNight;
-                dayNight.ChangeMaterial();
-            }
-
-
-            if (dayNight.isNight)
-            {
-
-                if (dayNight.directionalLight)
+                if (!dayNight.isNight)
                 {
+                    if (dayNight.directionalLight)
+                    {
+
+                        if (dayNight.intenseSunLight < 50)
+                            dayNight.intenseSunLight = 100;
+
+                        EditorGUILayout.BeginHorizontal();
+
+                        GUILayout.Label("Sun Intensity: ");
+
+                        dayNight.intenseSunLight = GUILayout.HorizontalSlider(dayNight.intenseSunLight, 50, 150, GUILayout.Width(200));
+                        if (dayNight._intenseSunLight != dayNight.intenseSunLight)
+                        {
+                            dayNight._intenseSunLight = dayNight.intenseSunLight;
+                            dayNight.SetDirectionalLight();
+                        }
+
+                        EditorGUILayout.EndHorizontal();
+
+                        GUILayout.Space(20);
+
+                        EditorGUILayout.BeginHorizontal();
+
+                        dayNight.sunLightColor = EditorGUILayout.ColorField("Sun Light Color", dayNight.sunLightColor);
+
+                        EditorGUILayout.EndHorizontal();
+
+                    }
+
+                    GUILayout.Space(5);
+
                     EditorGUILayout.BeginHorizontal();
 
-                    GUILayout.Label("MoonLight Intensity: " + dayNight.intenseMoonLight);
+                    dayNight.skyColorDay = EditorGUILayout.ColorField("SkyColor", dayNight.skyColorDay);
 
-                    dayNight.intenseMoonLight = GUILayout.HorizontalSlider(dayNight.intenseMoonLight, 400, 1200, GUILayout.Width(200));
-                    if (dayNight._intenseMoonLight != dayNight.intenseMoonLight)
-                    {
-                        dayNight._intenseMoonLight = dayNight.intenseMoonLight;
-                        dayNight.SetDirectionalLight();
-                    }
                     EditorGUILayout.EndHorizontal();
 
                     GUILayout.Space(5);
 
                     EditorGUILayout.BeginHorizontal();
 
-                    GUILayout.Label("MoonLight Temperature: " + dayNight.temperatureMoonLight);
+                    dayNight.equatorColorDay = EditorGUILayout.ColorField("EquatorColor", dayNight.equatorColorDay);
 
-                    dayNight.temperatureMoonLight = GUILayout.HorizontalSlider(dayNight.temperatureMoonLight, 1000, 20000, GUILayout.Width(200));
-                    if (dayNight._temperatureMoonLight != dayNight.temperatureMoonLight)
-                    {
-                        dayNight._temperatureMoonLight = dayNight.temperatureMoonLight;
-                        dayNight.SetDirectionalLight();
-                    }
-         
                     EditorGUILayout.EndHorizontal();
 
+                    if (dayNight._skyColorDay != dayNight.skyColorDay || dayNight._equatorColorDay != dayNight.equatorColorDay || dayNight._sunLightColor != dayNight.sunLightColor)
+                    {
+                        dayNight._skyColorDay = dayNight.skyColorDay;
+                        dayNight._equatorColorDay = dayNight.equatorColorDay;
+                        dayNight.UpdateColor();
+                    }
+
+
+
+                }
+
+                GUILayout.Space(5);
+
+                if (GUILayout.Button("Night"))
+                {
+                    dayNight.isNight = true;
+                }
+
+
+
+                if (dayNight.night != dayNight.isNight)
+                {
+                    dayNight.night = dayNight.isNight;
+                    dayNight.ChangeMaterial();
+                }
+
+                if (dayNight.isNight)
+                {
+
                     GUILayout.Space(20);
+
+                    if (dayNight.directionalLight)
+                    {
+                        EditorGUILayout.BeginHorizontal();
+
+                        dayNight.isMoonLight = GUILayout.Toggle(dayNight.isMoonLight, " MoonLight", GUILayout.Width(120));
+
+                        if (dayNight.moonLight != dayNight.isMoonLight)
+                        {
+                            dayNight.moonLight = dayNight.isMoonLight;
+                            dayNight.SetDirectionalLight();
+                        }
+
+
+                        GUILayout.Space(10);
+
+                        if (dayNight.isMoonLight)
+                        {
+                            dayNight.intenseMoonLight = GUILayout.HorizontalSlider(dayNight.intenseMoonLight, 0, 100, GUILayout.Width(120));
+                            if (dayNight._intenseMoonLight != dayNight.intenseMoonLight)
+                            {
+                                dayNight._intenseMoonLight = dayNight.intenseMoonLight;
+                                dayNight.SetDirectionalLight();
+                            }
+                        }
+
+                        EditorGUILayout.EndHorizontal();
+
+                        GUILayout.Space(20);
+
+                    }
+
+
+
+                    EditorGUILayout.BeginHorizontal();
+
+                    dayNight.isSpotLights = GUILayout.Toggle(dayNight.isSpotLights, " SpotLights on Street lighting", GUILayout.Width(160));
+
+                    if (dayNight.spotLights != dayNight.isSpotLights)
+                    {
+                        dayNight.spotLights = dayNight.isSpotLights;
+                        dayNight.SetStreetLights();
+                    }
+
+                    EditorGUILayout.EndHorizontal();
+
+                    GUILayout.Space(15);
+
+                    if (dayNight.directionalLight)
+                    {
+                        EditorGUILayout.BeginHorizontal();
+
+                        dayNight.moonLightColor = EditorGUILayout.ColorField("MoonLight Color", dayNight.moonLightColor);
+
+                        EditorGUILayout.EndHorizontal();
+
+                        GUILayout.Space(5);
+                    }
+
+                    EditorGUILayout.BeginHorizontal();
+
+                    dayNight.skyColorNight = EditorGUILayout.ColorField("SkyColor", dayNight.skyColorNight);
+
+                    EditorGUILayout.EndHorizontal();
+
+                    GUILayout.Space(5);
+
+                    EditorGUILayout.BeginHorizontal();
+
+                    dayNight.equatorColorNight = EditorGUILayout.ColorField("EquatorColor", dayNight.equatorColorNight);
+
+                    EditorGUILayout.EndHorizontal();
+
+
+                    if (dayNight._skyColorNight != dayNight.skyColorNight || dayNight._equatorColorNight != dayNight.equatorColorNight || dayNight._moonLightColor != dayNight.moonLightColor)
+                    {
+                        dayNight._skyColorNight = dayNight.skyColorNight;
+                        dayNight._equatorColorNight = dayNight.equatorColorNight;
+                        dayNight.UpdateColor();
+                    }
+
                 }
 
-                dayNight.isSpotLights = GUILayout.Toggle(dayNight.isSpotLights, " SpotLights on Street lighting", GUILayout.Width(240));
 
-                if (dayNight.spotLights != dayNight.isSpotLights)
-                {
-                    dayNight.spotLights = dayNight.isSpotLights;
-                    dayNight.SetStreetLights();
-                }
-                
-                
+
+                GUILayout.Space(10);
+
+                EditorGUILayout.EndVertical();
+
             }
 
 
-            GUILayout.Space(20);
-
-
-
         }
 
-    }
-    private void OnEnable()
-    {
-        dayNight = (DayNight)target;
-
-        if (PrefabUtility.GetPrefabAssetType(dayNight.gameObject) != PrefabAssetType.NotAPrefab)
-            PrefabUtility.UnpackPrefabInstance((GameObject)dayNight.gameObject, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);
-
-
-        if (!dayNight.directionalLight)
+        private void OnEnable()
         {
-            Light directionalLight = FindOrCreateDirectional();
 
-            if (directionalLight)
-                dayNight.directionalLight = directionalLight;
-            else
-                Debug.LogWarning("DayNight -> directionalLight is not assigned. It should reference the Directional Light in the scene.");
-        }
+            dayNight = (DayNight)target;
 
-        dayNight.ChangeMaterial();
-
-    }
+            if (PrefabUtility.GetPrefabAssetType(dayNight.gameObject) != PrefabAssetType.NotAPrefab)
+                PrefabUtility.UnpackPrefabInstance((GameObject)dayNight.gameObject, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);
 
 
-    Light FindOrCreateDirectional()
-    {
-        Light[] allLights = FindObjectsOfType<Light>();
-        Light directionalLight = null;
-
-        foreach (Light light in allLights)
-        {
-            if (light.type == LightType.Directional)
+            if (!dayNight.directionalLight)
             {
-                if (directionalLight != null)
-                {
-                    //Debug.LogWarning("Multiple Directional Lights found");
-                    return null; // directionalLight;
-                }
+                Light directionalLight = FindOrCreateDirectional();
 
-                directionalLight = light;
+                if (directionalLight)
+                    dayNight.directionalLight = directionalLight;
+                else
+                    Debug.LogWarning("DayNight -> directionalLight is not assigned. It should reference the Directional Light in the scene.");
             }
+
+
+            dayNight.ChangeMaterial();
+
         }
 
-        // If no directional light was found, create one
-        if (directionalLight == null)
+
+        Light FindOrCreateDirectional()
         {
-            GameObject newLightObj = new GameObject("Directional Light");
-            Light newLight = newLightObj.AddComponent<Light>();
-            newLight.type = LightType.Directional;
-            newLight.intensity = 1f;
-            newLight.shadows = LightShadows.Soft;
-            newLightObj.transform.rotation = Quaternion.Euler(50f, -30f, 0f); // Default rotation
+            Light[] allLights = FindObjectsOfType<Light>();
+            Light directionalLight = null;
 
-            Debug.Log("No Directional Light found. Created a new one.");
-            return newLight;
+            foreach (Light light in allLights)
+            {
+                if (light.type == LightType.Directional)
+                {
+                    if (directionalLight != null)
+                    {
+                        //Debug.LogWarning("Multiple Directional Lights found");
+                        return null; // directionalLight;
+                    }
+
+                    directionalLight = light;
+                }
+            }
+
+            // If no directional light was found, create one
+            if (directionalLight == null)
+            {
+                GameObject newLightObj = new GameObject("Directional Light");
+                Light newLight = newLightObj.AddComponent<Light>();
+                newLight.type = LightType.Directional;
+                newLight.intensity = 1f;
+                newLight.shadows = LightShadows.Soft;
+                newLightObj.transform.rotation = Quaternion.Euler(50f, -30f, 0f); // Default rotation
+
+                Debug.Log("No Directional Light found. Created a new one.");
+                return newLight;
+            }
+
+            return directionalLight;
+
         }
-
-        return directionalLight;
 
     }
-
 }

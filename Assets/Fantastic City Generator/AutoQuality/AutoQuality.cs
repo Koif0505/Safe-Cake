@@ -103,7 +103,7 @@ namespace FCG
             {
                 if (text != "")
                     text += " | ";
-                text += "Quality: " + currentQualityLevel + 1;
+                text += "Quality: " + currentQualityLevel;
             }
 
             displayText.text = text;

@@ -208,14 +208,12 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 997f22ac817cdff489988f5fb7a8ce97, type: 3}
 --- !u!4 &7747828797179408191 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 400000, guid: 997f22ac817cdff489988f5fb7a8ce97,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 400000, guid: 997f22ac817cdff489988f5fb7a8ce97, type: 3}
   m_PrefabInstance: {fileID: 7747828797179540927}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &7747828797179441949 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 100002, guid: 997f22ac817cdff489988f5fb7a8ce97,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 100002, guid: 997f22ac817cdff489988f5fb7a8ce97, type: 3}
   m_PrefabInstance: {fileID: 7747828797179540927}
   m_PrefabAsset: {fileID: 0}
 --- !u!64 &1026545628422872903

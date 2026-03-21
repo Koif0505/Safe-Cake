@@ -203,13 +203,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 878618937436342790, guid: 26307c1c91d0b424eb5c91595dda7cfd,
-        type: 3}
+    - target: {fileID: 878618937436342790, guid: 26307c1c91d0b424eb5c91595dda7cfd, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 4
       objectReference: {fileID: 0}
-    - target: {fileID: 6473193638873809105, guid: 26307c1c91d0b424eb5c91595dda7cfd,
-        type: 3}
+    - target: {fileID: 6473193638873809105, guid: 26307c1c91d0b424eb5c91595dda7cfd, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
@@ -218,8 +216,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 26307c1c91d0b424eb5c91595dda7cfd, type: 3}
 --- !u!1 &233383517581683323 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 100002, guid: 26307c1c91d0b424eb5c91595dda7cfd,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 100002, guid: 26307c1c91d0b424eb5c91595dda7cfd, type: 3}
   m_PrefabInstance: {fileID: 233383517581651161}
   m_PrefabAsset: {fileID: 0}
 --- !u!64 &7264421692445594925
@@ -238,7 +235,6 @@ MeshCollider:
   m_Mesh: {fileID: 4300002, guid: 26307c1c91d0b424eb5c91595dda7cfd, type: 3}
 --- !u!4 &233383517581784665 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 400000, guid: 26307c1c91d0b424eb5c91595dda7cfd,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 400000, guid: 26307c1c91d0b424eb5c91595dda7cfd, type: 3}
   m_PrefabInstance: {fileID: 233383517581651161}
   m_PrefabAsset: {fileID: 0}

@@ -206,8 +206,7 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7710147470276122014, guid: 92f0ce3312352fb42a89cb93fabf3c0d,
-        type: 3}
+    - target: {fileID: 7710147470276122014, guid: 92f0ce3312352fb42a89cb93fabf3c0d, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
@@ -215,8 +214,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 92f0ce3312352fb42a89cb93fabf3c0d, type: 3}
 --- !u!4 &1643095326376838805 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 4804324173448014, guid: 92f0ce3312352fb42a89cb93fabf3c0d,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 4804324173448014, guid: 92f0ce3312352fb42a89cb93fabf3c0d, type: 3}
   m_PrefabInstance: {fileID: 1647301512985396699}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &3067683289211925545
@@ -282,8 +280,7 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7290261405255591786, guid: 1e28298806727354e8196ec767fa92f0,
-        type: 3}
+    - target: {fileID: 7290261405255591786, guid: 1e28298806727354e8196ec767fa92f0, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
@@ -291,8 +288,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 1e28298806727354e8196ec767fa92f0, type: 3}
 --- !u!4 &3070618386493216117 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 4396489977028956, guid: 1e28298806727354e8196ec767fa92f0,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 4396489977028956, guid: 1e28298806727354e8196ec767fa92f0, type: 3}
   m_PrefabInstance: {fileID: 3067683289211925545}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8524587604226710773
@@ -363,8 +359,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: fdadbc9a1cbbb2b4dab371815f9f37ff, type: 3}
 --- !u!1 &8524587604226611793 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 100004, guid: fdadbc9a1cbbb2b4dab371815f9f37ff,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 100004, guid: fdadbc9a1cbbb2b4dab371815f9f37ff, type: 3}
   m_PrefabInstance: {fileID: 8524587604226710773}
   m_PrefabAsset: {fileID: 0}
 --- !u!64 &7209289080007076528
@@ -383,7 +378,6 @@ MeshCollider:
   m_Mesh: {fileID: 4300006, guid: fdadbc9a1cbbb2b4dab371815f9f37ff, type: 3}
 --- !u!4 &8524587604227098231 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 400002, guid: fdadbc9a1cbbb2b4dab371815f9f37ff,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 400002, guid: fdadbc9a1cbbb2b4dab371815f9f37ff, type: 3}
   m_PrefabInstance: {fileID: 8524587604226710773}
   m_PrefabAsset: {fileID: 0}

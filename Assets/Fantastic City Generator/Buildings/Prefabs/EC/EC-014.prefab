@@ -147,8 +147,7 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 4046215068770402}
     m_Modifications:
-    - target: {fileID: -2027109505511363450, guid: 6741c995ddae7ad47b68e6ae25e7d68a,
-        type: 3}
+    - target: {fileID: -2027109505511363450, guid: 6741c995ddae7ad47b68e6ae25e7d68a, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 4
       objectReference: {fileID: 0}
@@ -213,14 +212,12 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 6741c995ddae7ad47b68e6ae25e7d68a, type: 3}
 --- !u!4 &8495563325810909005 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 400000, guid: 6741c995ddae7ad47b68e6ae25e7d68a,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 400000, guid: 6741c995ddae7ad47b68e6ae25e7d68a, type: 3}
   m_PrefabInstance: {fileID: 8495563325811033549}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &8495563325810934639 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 100002, guid: 6741c995ddae7ad47b68e6ae25e7d68a,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 100002, guid: 6741c995ddae7ad47b68e6ae25e7d68a, type: 3}
   m_PrefabInstance: {fileID: 8495563325811033549}
   m_PrefabAsset: {fileID: 0}
 --- !u!64 &6813331988969936041

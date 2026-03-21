@@ -212,8 +212,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 972c5598194321449ba8a2c386467b21, type: 3}
 --- !u!1 &6299640434920677600 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 100002, guid: 972c5598194321449ba8a2c386467b21,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 100002, guid: 972c5598194321449ba8a2c386467b21, type: 3}
   m_PrefabInstance: {fileID: 6299640434920777282}
   m_PrefabAsset: {fileID: 0}
 --- !u!64 &7174833280659490358
@@ -232,7 +231,6 @@ MeshCollider:
   m_Mesh: {fileID: 4300002, guid: 972c5598194321449ba8a2c386467b21, type: 3}
 --- !u!4 &6299640434920914114 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 400000, guid: 972c5598194321449ba8a2c386467b21,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 400000, guid: 972c5598194321449ba8a2c386467b21, type: 3}
   m_PrefabInstance: {fileID: 6299640434920777282}
   m_PrefabAsset: {fileID: 0}

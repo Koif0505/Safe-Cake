@@ -1,9 +1,12 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
+//using System.Collections;
+//using System.Collections.Generic;
 //using System;
-using System.IO;
+//using System.IO;
 using System.Linq;
+using UnityEditor;
+using UnityEngine.SceneManagement; // Certifique-se de ter este using!
+
 
 namespace FCG
 {
@@ -15,7 +18,7 @@ namespace FCG
         private int residential = 0;
         private bool _residential = false;
 
-        GameObject cityMaker;
+        Transform cityMaker;
 
         [HideInInspector]
         public GameObject[] miniBorder;
@@ -139,11 +142,11 @@ namespace FCG
 
         public void ClearCity()
         {
-            if (!cityMaker)
-                cityMaker = GameObject.Find("City-Maker");
+            if (!cityMaker && GameObject.Find("City-Maker") != null)
+                cityMaker = GameObject.Find("City-Maker").transform;
 
             if (cityMaker)
-                DestroyImmediate(cityMaker);
+                DestroyImmediate(cityMaker.gameObject);
 
         }
 
@@ -266,11 +269,10 @@ namespace FCG
             }
 
 
-            
+
             DayNight dayNight = FindObjectOfType<DayNight>();
             if (dayNight)
                 dayNight.ChangeMaterial();
-            
 
         }
 
@@ -284,6 +286,24 @@ namespace FCG
 
         }
 
+        private GameObject InstantiatePrefab (GameObject gameObject, Vector3 pos, Quaternion rot, Transform parent)
+        {
+
+            GameObject obj;
+
+#if UNITY_EDITOR
+            obj = PrefabUtility.InstantiatePrefab(gameObject, parent) as GameObject;
+#else
+            obj = Instantiate(gameObject, parent) as GameObject;
+#endif
+            
+            obj.transform.position = pos;
+            obj.transform.rotation = rot;
+
+            return obj;
+
+        }
+
         private bool GenerateStreetsVerySmall(bool borderFlat = false, bool withSatteliteCity = false, bool satteliteCity = false, float satteliteCityPositionX = 0, float satteliteCityPositionZ = 0)
         {
 
@@ -293,7 +313,7 @@ namespace FCG
             if (!satteliteCity)
             {
                 ClearCity();
-                cityMaker = new GameObject("City-Maker");
+                cityMaker = new GameObject("City-Maker").transform;
             }
 
             GameObject block;
@@ -343,7 +363,7 @@ namespace FCG
             {
                 ClearCity();
 
-                cityMaker = new GameObject("City-Maker");
+                cityMaker = new GameObject("City-Maker").transform;
 
             }
 
@@ -429,7 +449,7 @@ namespace FCG
 
                 ClearCity();
 
-                cityMaker = new GameObject("City-Maker");
+                cityMaker = new GameObject("City-Maker").transform;
             }
 
             if (!satteliteCity)
@@ -528,10 +548,8 @@ namespace FCG
 
             if (!satteliteCity)
             {
-
                 ClearCity();
-
-                cityMaker = new GameObject("City-Maker");
+                cityMaker = new GameObject("City-Maker").transform;
             }
 
             distCenter = 350;
@@ -679,12 +697,14 @@ namespace FCG
 
             if (withDowntownArea)
             {
-                
+
                 GameObject[] tArray = SearchUtility.FindAllObjectsByName("Marcador");
 
                 if (tArray.Length == 1)
-                    center = tArray[0].transform.position + new Vector3(Random.Range(-50f, 50f), 0f, Random.Range(-70f, 70f)); 
-                else
+                {
+                    center = tArray[0].transform.position + new Vector3(Random.Range(-50f, 50f), 0f, Random.Range(-70f, 70f));
+                }
+                else 
                     center = tArray[Random.Range(1, tArray.Length - 1)].transform.position;
 
                 //if (GameObject.Find("DownTownPosition") && Random.Range(1, 10) < 5)
@@ -697,7 +717,7 @@ namespace FCG
             _BB = new int[BB.Length];
             _BC = new int[BC.Length];
             _BR = new int[BR.Length];
-            
+            //_DC = new int[DC.Length];
             _EB = new int[EB.Length];
             _EC = new int[EC.Length];
             _MB = new int[MB.Length];
@@ -719,14 +739,14 @@ namespace FCG
 
             nB = 0;
 
+                        
             CreateBuildingsInSuperBlocks();
             CreateBuildingsInBlocks();
             CreateBuildingsInLines();
             CreateBuildingsInDouble();
+            
 
-
-
-            Debug.ClearDeveloperConsole();
+            //Debug.ClearDeveloperConsole();
             Debug.Log(nB + " buildings were created");
 
 
@@ -738,7 +758,7 @@ namespace FCG
                 dayNight.ChangeMaterial();
                 dayNight.SetStreetLights(true);
             }
-
+            
 
 
         }
@@ -752,15 +772,13 @@ namespace FCG
 
             foreach (GameObject lines in tempArray)
             {
-
-                _residential = (residential < 15 && Vector3.Distance(center, lines.transform.position) > 400 && Random.Range(0, 100) < 30);
+                Vector3 linePosition = lines.transform.position;
+                _residential = (residential < 15 && Vector3.Distance(center, linePosition) > 400 && Random.Range(0, 100) < 30);
 
                 foreach (Transform child in lines.transform)
                 {
-
-                    if (child.name == "E")
-                        CreateBuildingsInCorners(child.gameObject);
-                    else if (child.name == "EL")
+                    string childName = child.name;
+                    if (childName == "EL")
                     {
                         int ct = 0;
                         do
@@ -769,22 +787,34 @@ namespace FCG
                             if (CreateBuildingsInCorners(child.gameObject, true))
                                 break;
 
-                        } while (ct < 300);
+                        } while (ct < 100);
 
                     }
-                    else if (child.name.Substring(0, 1) == "S")
-                        CreateBuildingsInLine(child.gameObject, 90f, true);
+                    else 
+                    if (childName[0] == 'E')
+                    {
+                        CreateBuildingsInCorners(child.gameObject);
+                    }
+                    else if (childName[0] == 'S')
+                    {  
+                       CreateBuildingsInLine(child.gameObject, 90f, true);
+                    }
                     else
+                    {
                         CreateBuildingsInLine(child.gameObject, 90f);
+                    }
 
                 }
 
                 _residential = false;
 
-
+                
             }
 
         }
+
+
+
 
         public bool CreateBuildingsInCorners(GameObject child, bool notAnyone = false)
         {
@@ -809,13 +839,15 @@ namespace FCG
 
             float _distCenter = distCenter * (Mathf.Clamp(downTownSize, 50, 200) / 100);
 
-            while (t < 30)
+            while (t < 10) //(t < 100)
             {
 
                 t++;
 
                 if (distancia < _distCenter && withDowntownArea)
                 {
+
+                    //lp = 0;
 
                     do
                     {
@@ -825,14 +857,15 @@ namespace FCG
                         {
                             lt++;
                             numB = Random.Range(0, EC.Length);
-                        } while (notAnyone && _ECS[numB] > 0 && lt < 2000);
+                        } while (notAnyone && _ECS[numB] == 100 && lt < 20);  
 
                         if (_EC[numB] == 0) break;
+
                         if (lp > 50 && _EC[numB] <= 1) break;
                         if (lp > 80 && _EC[numB] <= 2) break;
                         if (lp > 120 && _EC[numB] <= 3) break;
 
-                    } while (lp < 150);
+                    } while (lp < 150); // (lp < 300) ;
 
                     pWidth = GetWith(EC[numB]);
 
@@ -860,14 +893,14 @@ namespace FCG
                         {
                             lt++;
                             numB = Random.Range(0, EB.Length);
-                        } while (notAnyone && _EBS[numB] >= 100 && lt < 2000);
+                        } while (notAnyone && _EBS[numB] == 100 && lt < 20);  //} while (notAnyone && _EBS[numB] >= 100 && lt < 1000);
 
                         if (_EB[numB] == 0) break;
                         if (lp > 50 && _EB[numB] <= 1) break;
                         if (lp > 80 && _EB[numB] <= 2) break;
                         if (lp > 120 && _EB[numB] <= 3) break;
 
-                    } while (lp <150);
+                    } while (lp < 150);
 
 
                     pWidth = GetWith(EB[numB]);
@@ -894,6 +927,7 @@ namespace FCG
 
 
             pBuilding = (GameObject)Instantiate(pB, new Vector3(0, 0, 0), Quaternion.Euler(0, 0, 0));
+            
 
             if (notAnyone && !TestBaseBuildindCornerOnTheSlope(pBuilding.transform))
             {
@@ -1000,7 +1034,6 @@ namespace FCG
 
             int numB = 0;
 
-            
             tempArray = SearchUtility.FindAllObjectsByName("Blocks");
 
             foreach (GameObject bks in tempArray)
@@ -1017,16 +1050,20 @@ namespace FCG
                         {
                             lp++;
                             numB = Random.Range(0, BK.Length);
+                            
                             if (_BK[numB] == 0) break;
-                            if (lp > 30 && _BK[numB] <= 1) break;
-                            if (lp > 60 && _BK[numB] <= 2) break;
-                            if (lp > 100 && _BK[numB] <= 3) break;
 
-                        } while (lp < 150);
+                            if (lp > 10 && _BK[numB] <= 1) break;
+                            if (lp > 20 && _BK[numB] <= 2) break;
+                            if (lp > 30 && _BK[numB] <= 3) break;
+
+                        } while (lp < 40);
 
                         _BK[numB] += 1;
 
+
                         Instantiate(BK[numB], bk.position, bk.rotation, bk);
+                        
                         nB++;
 
                     }
@@ -1075,6 +1112,8 @@ namespace FCG
             int numB = 0;
 
             tempArray = SearchUtility.FindAllObjectsByName("SuperBlocks");
+            
+            int lp = 0;
 
             foreach (GameObject bks in tempArray)
             {
@@ -1082,13 +1121,14 @@ namespace FCG
                 foreach (Transform bk in bks.transform)
                 {
 
-
-                    int lp = 0;
+                    
                     do
                     {
                         lp++;
                         numB = Random.Range(0, SB.Length);
+                        
                         if (_SB[numB] == 0) break;
+
                         if (lp > 20 && _SB[numB] <= 1) break;
                         if (lp > 30 && _SB[numB] <= 2) break;
                         if (lp > 50 && _SB[numB] <= 3) break;
@@ -1098,6 +1138,7 @@ namespace FCG
                     _SB[numB] += 1;
 
                     Instantiate(SB[numB], bk.position, bk.rotation, bk);
+                    
                     nB++;
 
 
@@ -1126,6 +1167,7 @@ namespace FCG
             else
                 limit = float.Parse(_name);
 
+            
             float init = 0;
             float pWidth = 0;
 
@@ -1134,20 +1176,24 @@ namespace FCG
 
             int lp;
 
+            int tot = 100;
+            int sr = 8;
 
             float distancia = Vector3.Distance(center, line.transform.position);
 
             float _distCenter = distCenter * (Mathf.Clamp(downTownSize, 50, 200) / 100);
 
-            while (tt < 100)
+
+
+            while (tt < tot)
             {
 
                 tt++;
                 t = 0;
 
-
                 lp = 0;
-                while (t < 100 && init <= limit - 4)
+
+                while (t < tot && init <= limit - sr) //while (t < 200 && init <= limit - 4)
                 {
 
                     t++;
@@ -1158,49 +1204,60 @@ namespace FCG
                         {
                             do
                             {
+                                
                                 lp++;
                                 numB = Random.Range(0, BCS.Length);
+                                
                                 if (_BCS[numB] == 0) break;
-                                if (lp > 50 && _BCS[numB] <= 1) break;
-                                if (lp > 80 && _BCS[numB] <= 2) break;
-                                if (lp > 120 && _BCS[numB] <= 3) break;
 
+                                if (lp > 30 && _BCS[numB] <= 1) break;
+                                if (lp > 50 && _BCS[numB] <= 2) break;
+                                if (lp > 80 && _BCS[numB] <= 3) break;
 
-                            } while (lp < 150);
+                            } while (lp <= 100);
 
                             pWidth = GetWith(BCS[numB]);
 
-                            if (pWidth > 0)
-                                if ((init + pWidth) <= (limit + 4))
+                            if (pWidth <= 0) { Debug.LogError("Error: BCS: " + numB); _BCS[numB] += 1; }
+                            else
+                            {
+                                if ((init + pWidth) <= (limit + sr))
                                 {
                                     pB = BCS[numB];
                                     _BCS[numB] += 1;
                                     break;
                                 }
+                            }
+
                         }
                         else
                         {
 
                             do
                             {
+
                                 lp++;
                                 numB = Random.Range(0, BBS.Length);
-                                if (_BBS[numB] == 0) break;
-                                if (lp > 50 && _BBS[numB] <= 1) break;
-                                if (lp > 80 && _BBS[numB] <= 2) break;
-                                if (lp > 120 && _BBS[numB] <= 3) break;
 
-                            } while (lp < 150);
+                                if (_BBS[numB] == 0) break;
+                                if (lp > 30 && _BBS[numB] <= 1) break;
+                                if (lp > 50 && _BBS[numB] <= 2) break;
+                                if (lp > 80 && _BBS[numB] <= 3) break;
+                                
+                            } while (lp <= 100);
 
                             pWidth = GetWith(BBS[numB]);
 
-                            if (pWidth > 0)
-                                if ((init + pWidth) <= (limit + 4))
+                            if (pWidth <= 0) { Debug.LogError("Error: BBS: " + numB); _BBS[numB] += 1; }
+                            else
+                            {
+                                if ((init + pWidth) <= (limit + sr))
                                 {
                                     pB = BBS[numB];
                                     _BBS[numB] += 1;
                                     break;
                                 }
+                            }
 
                         }
 
@@ -1213,22 +1270,24 @@ namespace FCG
                             lp++;
                             numB = Random.Range(0, BC.Length);
                             if (_BC[numB] == 0) break;
-                            if (lp > 125 && _BC[numB] <= 1) break;
-                            if (lp > 150 && _BC[numB] <= 2) break;
-                            if (lp > 200 && _BC[numB] <= 3) break;
-                            if (lp > 250) break;
+                            if (lp > 50 && _BC[numB] <= 1) break;
+                            if (lp > 80 && _BC[numB] <= 2) break;
+                            if (lp > 120 && _BC[numB] <= 3) break;
 
-                        } while (lp < 300);
+                        } while (lp <= 150);
 
                         pWidth = GetWith(BC[numB]);
 
-                        if (pWidth > 0)
-                            if ((init + pWidth) <= (limit + 4))
+                        if (pWidth <= 0) { Debug.LogError("Error: BC: " + numB); _BC[numB] += 1; }
+                        else
+                        {
+                            if ((init + pWidth) <= (limit + sr))
                             {
                                 pB = BC[numB];
                                 _BC[numB] += 1;
                                 break;
                             }
+                        }
 
                     }
                     else if (_residential)
@@ -1239,22 +1298,24 @@ namespace FCG
                             lp++;
                             numB = Random.Range(0, BR.Length);
                             if (_BR[numB] == 0) break;
-                            if (lp > 100 && _BR[numB] <= 1) break;
-                            if (lp > 150 && _BR[numB] <= 2) break;
-                            if (lp > 200 && _BR[numB] <= 3) break;
-                            if (lp > 250) break;
-                        } while (lp < 300);
+                            if (lp > 50 && _BR[numB] <= 1) break;
+                            if (lp > 80 && _BR[numB] <= 2) break;
+                            if (lp > 120 && _BR[numB] <= 3) break;
+                            
+                        } while (lp <= 150);
 
                         pWidth = GetWith(BR[numB]);
 
-                        if (pWidth <= 0) { Debug.LogWarning("Error: BR: " + numB); _BR[numB] += 1; }
+                        if (pWidth <= 0) { Debug.LogError("Error: BR: " + numB); _BR[numB] += 1; }
                         else
-                        if ((init + pWidth) <= (limit + 4))
                         {
-                            pB = BR[numB];
-                            _BR[numB] += 1;
-                            residential += 1;
-                            break;
+                            if ((init + pWidth) <= (limit + sr))
+                            {
+                                pB = BR[numB];
+                                _BR[numB] += 1;
+                                residential += 1;
+                                break;
+                            }
                         }
                     }
                     else
@@ -1265,34 +1326,40 @@ namespace FCG
                             lp++;
                             numB = Random.Range(0, BB.Length);
                             if (_BB[numB] == 0) break;
-                            if (lp > 100 && _BB[numB] <= 1) break;
-                            if (lp > 150 && _BB[numB] <= 2) break;
-                            if (lp > 200 && _BB[numB] <= 3) break;
-                            if (lp > 250) break;
-                        } while (lp < 300);
+                            if (lp > 50 && _BB[numB] <= 1) break;
+                            if (lp > 80 && _BB[numB] <= 2) break;
+                            if (lp > 120 && _BB[numB] <= 3) break;
+                            
+                        } while (lp <= 150);
 
                         pWidth = GetWith(BB[numB]);
 
-                        if (pWidth <= 0) { Debug.LogWarning("Error: BB: " + numB); _BB[numB] += 1; }
-                        if ((init + pWidth) <= (limit + 4))
+                        if (pWidth <= 0) { Debug.LogWarning("Error: BB: " + numB); _BB[numB] += 1;  }
+                        else
                         {
-                            pB = BB[numB];
-                            _BB[numB] += 1;
-                            break;
+                            if ((init + pWidth) <= (limit + sr))
+                            {
+                                pB = BB[numB];
+                                _BB[numB] += 1;
+                                break;
+                            }
                         }
-
                     }
 
 
                 }
 
 
-                if (t >= 100 || init > limit - 4)
+                if (t >= tot || init > limit - 4)
                 {
                     // Didn't find one that fits in the remaining space
 
                     AdjustsWidth(pBuilding, index + 1, limit - init, 0, slope);
+
+                    //Debug.Log("ETA t: " + t);
+
                     break;
+
 
                 }
                 else
@@ -1300,13 +1367,11 @@ namespace FCG
 
                     index++;
 
-
                     nB++;
-
-                    //pBuilding[index].name = pBuilding[index].name;
-                    pBuilding[index] = (GameObject)Instantiate(pB, new Vector3(0, 0, init + (pWidth * 0.5f)), Quaternion.Euler(0, angulo, 0));
+                   
+                    pBuilding[index] = (GameObject)Instantiate(pB, new Vector3(0, 0, init + (pWidth * 0.5f)), Quaternion.Euler(0, angulo, 0), line.transform);
+                    
                     pBuilding[index].transform.SetParent(line.transform);
-
                     pBuilding[index].transform.localPosition = new Vector3(0, 0, init + (pWidth * 0.5f));
                     pBuilding[index].transform.localRotation = Quaternion.Euler(0, angulo, 0);
 
@@ -1317,13 +1382,14 @@ namespace FCG
                         AdjustsWidth(pBuilding, index + 1, limit - init, 0, slope);
                         break;
                     }
-
+                    
                 }
 
 
 
             }
 
+            
 
 
         }
@@ -1356,6 +1422,7 @@ namespace FCG
             GameObject[] pBuilding;
             pBuilding = new GameObject[20];
 
+
             float limit;
             string _name = line.name;
 
@@ -1373,7 +1440,7 @@ namespace FCG
             int t;
             int lp;
 
-            while (tt < 100)
+            while (tt < 10)
             {
 
                 tt++;
@@ -1381,7 +1448,7 @@ namespace FCG
 
                 lp = 0;
 
-                while (t < 200 && init <= limit - 4)
+                while (t < 100 && init <= limit - 4)
                 {
 
                     t++;
@@ -1391,10 +1458,10 @@ namespace FCG
                         lp++;
                         numB = Random.Range(0, MB.Length);
                         if (_MB[numB] == 0) break;
-                        if (lp > 100 && _MB[numB] <= 1) break;
-                        if (lp > 150 && _MB[numB] <= 2) break;
-                        if (lp > 200) break;
-                    } while (lp < 300);
+                        if (lp > 30 && _MB[numB] <= 1) break;
+                        if (lp > 50 && _MB[numB] <= 2) break;
+
+                    } while (lp < 70);
 
                     pWidth = GetWith(MB[numB]);
 
@@ -1409,7 +1476,7 @@ namespace FCG
 
                 }
 
-                if (t >= 200 || init > limit - 4)
+                if (t >= 100 || init > limit - 4)
                 {
                     AdjustsWidth(pBuilding, index + 1, (limit - init), 0);
                     break;
@@ -1421,6 +1488,8 @@ namespace FCG
                     index++;
 
                     pBuilding[index] = (GameObject)Instantiate(MB[numB], new Vector3(0, 0, 0), Quaternion.Euler(0, 90, 0), line.transform);
+                    
+
                     nB++;
 
                     pBuilding[index].name = "building";
@@ -1445,13 +1514,12 @@ namespace FCG
         private void CreateBuildingsInDouble()
         {
             float limit;
-
             
-            tempArray = SearchUtility.FindAllObjectsByName("Double");
-
             GameObject DB;
             GameObject mc2;
             GameObject mc;
+
+            tempArray = SearchUtility.FindAllObjectsByName("Double");
 
 
             foreach (GameObject dbCross in tempArray)
@@ -1460,13 +1528,12 @@ namespace FCG
                 foreach (Transform line in dbCross.transform)
                 {
 
+
                     int dotIndex = line.name.IndexOf('.');
                     if (dotIndex != -1)
                         limit = float.Parse(line.name.Split('.')[0]) + float.Parse(line.name.Split('.')[1]) / float.Parse("1" + "0000000".Substring(0, line.name.Split('.')[1].Length));
                     else
                         limit = float.Parse(line.name);
-
-
 
                     if (Random.Range(0, 10) < 5)
                     {
@@ -1482,6 +1549,8 @@ namespace FCG
                         } while (wl > limit / 2);
 
                         GameObject e = (GameObject)Instantiate(DC[numB], line.transform.position, line.transform.rotation, line.transform);
+                        
+
                         nB++;
 
                         do
@@ -1491,6 +1560,8 @@ namespace FCG
                         } while (wl2 > limit - (wl + 26));
 
                         e = (GameObject)Instantiate(DC[numB], line.transform.position, line.rotation, line.transform);
+
+
                         e.transform.SetParent(line.transform);
                         e.transform.localPosition = new Vector3(0, 0, -limit);
                         e.transform.localRotation = Quaternion.Euler(0, 180, 0);
@@ -1659,21 +1730,21 @@ namespace FCG
 
         }
 
-
+            
         public void DestroyBuildings()
         {
 
-            DestryObjetcs("Marcador");
-            DestryObjetcs("Blocks");
-            DestryObjetcs("SuperBlocks");
-            DestryObjetcs("Double");
+            DestroyObjetcs("Marcador");
+            DestroyObjetcs("Blocks");
+            DestroyObjetcs("SuperBlocks");
+            DestroyObjetcs("Double");
 
         }
 
 
-        private void DestryObjetcs(string tag)
+        private void DestroyObjetcs(string tag)
         {
-            
+
             tempArray = SearchUtility.FindAllObjectsByName(tag);
 
             foreach (GameObject objt in tempArray)
@@ -1681,10 +1752,12 @@ namespace FCG
                     for (int k = child.childCount - 1; k >= 0; k--)
                         DestroyImmediate(child.GetChild(k).gameObject);
 
-
         }
+        
 
 
 
     }
+
+
 }

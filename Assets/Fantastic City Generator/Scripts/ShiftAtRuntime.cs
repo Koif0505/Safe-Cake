@@ -15,9 +15,9 @@ namespace FCG
         DayNight dayNight;
 
         public CityGenerator cityGenerator;
-
+        
         [Space(10)]
-        [Range(70, 130)]
+        [Range(70,130)]
         public float downtownSize = 100;
 
         private void Start()
@@ -40,11 +40,6 @@ namespace FCG
                 {
                     dayNight.isNight = !dayNight.isNight;
                     dayNight.ChangeMaterial();
-
-                }
-                else
-                {
-                    Debug.LogError("Add the “DayNight” prefab to the scene to toggle between Day and Night.");
                 }
             }
 

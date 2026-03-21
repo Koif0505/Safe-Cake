@@ -44,7 +44,7 @@ namespace ICON.Utilities
                 setIconForObjectMethodInfo =  type.GetMethod("SetIconForObject", BindingFlags.Static | BindingFlags.NonPublic);
             }
 
-            //setIconForObjectMethodInfo.Invoke(null, new object[] {obj, icon});
+            setIconForObjectMethodInfo.Invoke(null, new object[] {obj, icon});
         }
     }
 

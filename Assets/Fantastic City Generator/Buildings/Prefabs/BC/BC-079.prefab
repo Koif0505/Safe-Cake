@@ -203,8 +203,7 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 782808566016573145, guid: 8c039a3a6cc398f4caade5f0b5bec51f,
-        type: 3}
+    - target: {fileID: 782808566016573145, guid: 8c039a3a6cc398f4caade5f0b5bec51f, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 4
       objectReference: {fileID: 0}
@@ -213,8 +212,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 8c039a3a6cc398f4caade5f0b5bec51f, type: 3}
 --- !u!1 &1226713432418507300 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 100002, guid: 8c039a3a6cc398f4caade5f0b5bec51f,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 100002, guid: 8c039a3a6cc398f4caade5f0b5bec51f, type: 3}
   m_PrefabInstance: {fileID: 1226713432418475142}
   m_PrefabAsset: {fileID: 0}
 --- !u!64 &457195652501651879
@@ -233,7 +231,6 @@ MeshCollider:
   m_Mesh: {fileID: 4300002, guid: 8c039a3a6cc398f4caade5f0b5bec51f, type: 3}
 --- !u!4 &1226713432418862598 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 400000, guid: 8c039a3a6cc398f4caade5f0b5bec51f,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 400000, guid: 8c039a3a6cc398f4caade5f0b5bec51f, type: 3}
   m_PrefabInstance: {fileID: 1226713432418475142}
   m_PrefabAsset: {fileID: 0}

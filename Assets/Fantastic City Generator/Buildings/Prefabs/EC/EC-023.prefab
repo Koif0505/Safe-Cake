@@ -203,8 +203,7 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5220013020495423873, guid: db88902c62cb4b34ab962391ebba4bfe,
-        type: 3}
+    - target: {fileID: 5220013020495423873, guid: db88902c62cb4b34ab962391ebba4bfe, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 4
       objectReference: {fileID: 0}
@@ -213,14 +212,12 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: db88902c62cb4b34ab962391ebba4bfe, type: 3}
 --- !u!4 &4719589041573140568 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 400000, guid: db88902c62cb4b34ab962391ebba4bfe,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 400000, guid: db88902c62cb4b34ab962391ebba4bfe, type: 3}
   m_PrefabInstance: {fileID: 4719589041573266136}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &4719589041573233786 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 100002, guid: db88902c62cb4b34ab962391ebba4bfe,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 100002, guid: db88902c62cb4b34ab962391ebba4bfe, type: 3}
   m_PrefabInstance: {fileID: 4719589041573266136}
   m_PrefabAsset: {fileID: 0}
 --- !u!64 &64314043290215250

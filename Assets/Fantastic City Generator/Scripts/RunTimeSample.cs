@@ -13,7 +13,6 @@ public class RunTimeSample : MonoBehaviour
     private bool withDownTownArea = true;
     private bool rightHand = true;
 
-    private bool isNight = false;
 
     void Awake()
     {
@@ -56,18 +55,15 @@ public class RunTimeSample : MonoBehaviour
 
         trafficSystem = FindObjectOfType<TrafficSystem>();
 
-        if (trafficSystem)
-        {
+        if (trafficSystem) 
+        { 
 
             trafficSystem.LoadCars((rightHand) ? 0 : 1);
 
             Debug.LogWarning("Move the camera to the streets so that vehicles are generated around it");
-
-        }
-        else
-        {
+    
+        } else
             Debug.LogError("Traffic System prefab not found in Hierarchy");
-        }
 
 
     }

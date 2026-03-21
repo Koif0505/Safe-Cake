@@ -147,13 +147,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 4168030118870854}
     m_Modifications:
-    - target: {fileID: -4317507063995604718, guid: 3c5535f062d3e79408500aeef264ef1a,
-        type: 3}
+    - target: {fileID: -4317507063995604718, guid: 3c5535f062d3e79408500aeef264ef1a, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 4
       objectReference: {fileID: 0}
-    - target: {fileID: -3693596741186035186, guid: 3c5535f062d3e79408500aeef264ef1a,
-        type: 3}
+    - target: {fileID: -3693596741186035186, guid: 3c5535f062d3e79408500aeef264ef1a, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
@@ -218,8 +216,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 3c5535f062d3e79408500aeef264ef1a, type: 3}
 --- !u!1 &1255377146822141887 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 100002, guid: 3c5535f062d3e79408500aeef264ef1a,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 100002, guid: 3c5535f062d3e79408500aeef264ef1a, type: 3}
   m_PrefabInstance: {fileID: 1255377146822238493}
   m_PrefabAsset: {fileID: 0}
 --- !u!64 &4917814491926668522
@@ -238,7 +235,6 @@ MeshCollider:
   m_Mesh: {fileID: 4300002, guid: 3c5535f062d3e79408500aeef264ef1a, type: 3}
 --- !u!4 &1255377146822376349 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 400000, guid: 3c5535f062d3e79408500aeef264ef1a,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 400000, guid: 3c5535f062d3e79408500aeef264ef1a, type: 3}
   m_PrefabInstance: {fileID: 1255377146822238493}
   m_PrefabAsset: {fileID: 0}
