@@ -3,29 +3,39 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuController : MonoBehaviour
 {
+    public GameObject mainMenuPanel;
     public GameObject howToPlayPanel;
 
     void Start()
     {
-        if (howToPlayPanel != null)
-            howToPlayPanel.SetActive(false);
+        if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
+        if (howToPlayPanel != null) howToPlayPanel.SetActive(false);
     }
 
-    public void GoToLevelSelect()
+    public void StartSafeMode()
     {
-        SceneManager.LoadScene("2. Level Select");
+        GameSession.selectedMode = "Safe";
+        GameSession.selectedLevel = 1;
+        SceneManager.LoadScene("SafeMode");
+    }
+
+    public void StartChallengeMode()
+    {
+        GameSession.selectedMode = "Challenge";
+        GameSession.selectedLevel = 1;
+        SceneManager.LoadScene("ChallengeMode");
     }
 
     public void OpenHowToPlay()
     {
-        if (howToPlayPanel != null)
-            howToPlayPanel.SetActive(true);
+        if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
+        if (howToPlayPanel != null) howToPlayPanel.SetActive(true);
     }
 
     public void CloseHowToPlay()
     {
-        if (howToPlayPanel != null)
-            howToPlayPanel.SetActive(false);
+        if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
+        if (howToPlayPanel != null) howToPlayPanel.SetActive(false);
     }
 
     public void QuitGame()

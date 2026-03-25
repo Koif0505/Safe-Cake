@@ -6,31 +6,31 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    [Header("Game Settings")]
-    public int totalCakes = 3;
+    [Header("Config")]
     public bool useTimer = false;
-    public float timeRemaining = 120f;
-    public bool requireFinishFlag = false;
+    public float timeRemaining = 180f;
+    public int totalCakes = 10;
 
     [Header("Runtime")]
     public int collectedCakes = 0;
     public int score = 0;
     public bool IsGameEnded { get; private set; } = false;
-    public bool allCakesCollected = false;
+    private bool finishUnlocked = false;
 
     [Header("UI")]
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI cakeText;
     public TextMeshProUGUI timerText;
+    public TextMeshProUGUI hintText;
 
     public GameObject winPanel;
     public GameObject losePanel;
-
     public TextMeshProUGUI winScoreText;
     public TextMeshProUGUI loseScoreText;
 
-    [Header("Optional")]
+    [Header("Scene Objects")]
     public GameObject finishFlag;
+    public Light directionalLight;
 
     void Awake()
     {
@@ -43,6 +43,7 @@ public class GameManager : MonoBehaviour
         ApplyModeSettings();
         UpdateUI();
 
+        if (finishFlag != null) finishFlag.SetActive(false);
         if (winPanel != null) winPanel.SetActive(false);
         if (losePanel != null) losePanel.SetActive(false);
 
@@ -57,7 +58,6 @@ public class GameManager : MonoBehaviour
         if (useTimer)
         {
             timeRemaining -= Time.deltaTime;
-
             if (timeRemaining <= 0)
             {
                 timeRemaining = 0;
@@ -68,40 +68,24 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // =============================
-    // MODE SETTINGS (NEW VERSION)
-    // =============================
     void ApplyModeSettings()
     {
         if (GameSession.selectedMode == "Safe")
         {
             useTimer = false;
-            totalCakes = 3;
             timeRemaining = 0f;
-            requireFinishFlag = false;
+            totalCakes = 10;
+            SetHint("Collect all cakes carefully.");
         }
         else if (GameSession.selectedMode == "Challenge")
         {
             useTimer = true;
-            totalCakes = 5;
-            timeRemaining = 120f;
-            requireFinishFlag = true;
+            timeRemaining = 180f;
+            totalCakes = 10;
+            SetHint("Collect all cakes before time runs out!");
         }
-
-        if (finishFlag != null)
-        {
-            finishFlag.SetActive(requireFinishFlag);
-        }
-
-        Debug.Log("Mode: " + GameSession.selectedMode +
-                  " | Cakes: " + totalCakes +
-                  " | Timer: " + useTimer +
-                  " | RequireFlag: " + requireFinishFlag);
     }
 
-    // =============================
-    // GAMEPLAY
-    // =============================
     public void CollectCake(int scoreValue)
     {
         if (IsGameEnded) return;
@@ -109,62 +93,92 @@ public class GameManager : MonoBehaviour
         collectedCakes++;
         score += scoreValue;
 
+        TriggerProgressionEvents();
+        UpdateUI();
+
         if (collectedCakes >= totalCakes)
         {
-            allCakesCollected = true;
+            UnlockFinish();
+        }
+    }
 
-            if (!requireFinishFlag)
+    void TriggerProgressionEvents()
+    {
+        if (GameSession.selectedMode == "Safe")
+        {
+            if (collectedCakes == 3)
+                SetHint("Be careful on narrow beams.");
+
+            if (collectedCakes == 5)
+                SetHint("The wind is getting stronger.");
+
+            if (collectedCakes == 8)
             {
-                WinGame();
-            }
-            else
-            {
-                Debug.Log("All cakes collected. Go to finish flag.");
+                SetHint("It's getting darker...");
+                MakeSceneDarker();
             }
         }
+        else if (GameSession.selectedMode == "Challenge")
+        {
+            if (collectedCakes == 3)
+                SetHint("Hurry up!");
 
-        UpdateUI();
+            if (collectedCakes == 6)
+            {
+                SetHint("The challenge is getting harder!");
+                MakeSceneDarker();
+            }
+
+            if (collectedCakes == 8)
+                SetHint("Almost there!");
+        }
+    }
+
+    void UnlockFinish()
+    {
+        finishUnlocked = true;
+
+        if (finishFlag != null)
+            finishFlag.SetActive(true);
+
+        SetHint("Go to Finish!");
     }
 
     public void ReachFinishFlag()
     {
         if (IsGameEnded) return;
 
-        if (requireFinishFlag && allCakesCollected)
-        {
+        if (finishUnlocked)
             WinGame();
+    }
+
+    void MakeSceneDarker()
+    {
+        if (directionalLight != null)
+        {
+            directionalLight.intensity = Mathf.Max(0.2f, directionalLight.intensity * 0.5f);
         }
     }
 
-    // =============================
-    // WIN / LOSE
-    // =============================
     public void WinGame()
     {
         if (IsGameEnded) return;
 
         IsGameEnded = true;
 
-        // Bonus score
-        score += 500;
+        int finalScore = score + 500;
 
         if (useTimer)
-        {
-            score += Mathf.RoundToInt(timeRemaining * 5f);
-        }
-
-        UpdateUI();
+            finalScore += Mathf.RoundToInt(timeRemaining * 5f);
 
         if (winScoreText != null)
-            winScoreText.text = "Final Score: " + score;
+            winScoreText.text = "Final Score: " + finalScore;
 
         if (winPanel != null)
             winPanel.SetActive(true);
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-
-        Debug.Log("YOU WIN");
     }
 
     public void LoseGame()
@@ -181,24 +195,28 @@ public class GameManager : MonoBehaviour
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-
-        Debug.Log("GAME OVER");
     }
 
-    // =============================
-    // RESTART
-    // =============================
     public void RestartScene()
     {
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    // =============================
-    // UI UPDATE
-    // =============================
+    public void BackToMenu()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        SceneManager.LoadScene("1.MainMenu");
+    }
+
+    void SetHint(string message)
+    {
+        if (hintText != null)
+            hintText.text = message;
+    }
+
     void UpdateUI()
     {
         if (scoreText != null)
