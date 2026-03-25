@@ -6,16 +6,19 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    public int totalCakes = 1;
+    [Header("Game Settings")]
+    public int totalCakes = 3;
     public bool useTimer = false;
     public float timeRemaining = 120f;
     public bool requireFinishFlag = false;
 
+    [Header("Runtime")]
     public int collectedCakes = 0;
     public int score = 0;
     public bool IsGameEnded { get; private set; } = false;
     public bool allCakesCollected = false;
 
+    [Header("UI")]
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI cakeText;
     public TextMeshProUGUI timerText;
@@ -26,6 +29,9 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI winScoreText;
     public TextMeshProUGUI loseScoreText;
 
+    [Header("Optional")]
+    public GameObject finishFlag;
+
     void Awake()
     {
         if (Instance == null) Instance = this;
@@ -34,10 +40,14 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        ApplyModeSettings();
         UpdateUI();
 
         if (winPanel != null) winPanel.SetActive(false);
         if (losePanel != null) losePanel.SetActive(false);
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     void Update()
@@ -47,6 +57,7 @@ public class GameManager : MonoBehaviour
         if (useTimer)
         {
             timeRemaining -= Time.deltaTime;
+
             if (timeRemaining <= 0)
             {
                 timeRemaining = 0;
@@ -57,6 +68,40 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // =============================
+    // MODE SETTINGS (NEW VERSION)
+    // =============================
+    void ApplyModeSettings()
+    {
+        if (GameSession.selectedMode == "Safe")
+        {
+            useTimer = false;
+            totalCakes = 3;
+            timeRemaining = 0f;
+            requireFinishFlag = false;
+        }
+        else if (GameSession.selectedMode == "Challenge")
+        {
+            useTimer = true;
+            totalCakes = 5;
+            timeRemaining = 120f;
+            requireFinishFlag = true;
+        }
+
+        if (finishFlag != null)
+        {
+            finishFlag.SetActive(requireFinishFlag);
+        }
+
+        Debug.Log("Mode: " + GameSession.selectedMode +
+                  " | Cakes: " + totalCakes +
+                  " | Timer: " + useTimer +
+                  " | RequireFlag: " + requireFinishFlag);
+    }
+
+    // =============================
+    // GAMEPLAY
+    // =============================
     public void CollectCake(int scoreValue)
     {
         if (IsGameEnded) return;
@@ -91,18 +136,23 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // =============================
+    // WIN / LOSE
+    // =============================
     public void WinGame()
     {
         if (IsGameEnded) return;
 
         IsGameEnded = true;
 
+        // Bonus score
+        score += 500;
+
         if (useTimer)
         {
             score += Mathf.RoundToInt(timeRemaining * 5f);
         }
 
-        score += 500;
         UpdateUI();
 
         if (winScoreText != null)
@@ -110,6 +160,9 @@ public class GameManager : MonoBehaviour
 
         if (winPanel != null)
             winPanel.SetActive(true);
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
 
         Debug.Log("YOU WIN");
     }
@@ -126,14 +179,26 @@ public class GameManager : MonoBehaviour
         if (losePanel != null)
             losePanel.SetActive(true);
 
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
         Debug.Log("GAME OVER");
     }
 
+    // =============================
+    // RESTART
+    // =============================
     public void RestartScene()
     {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
+    // =============================
+    // UI UPDATE
+    // =============================
     void UpdateUI()
     {
         if (scoreText != null)

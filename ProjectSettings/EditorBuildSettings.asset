@@ -6,7 +6,16 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Play-level 1.unity
+    path: Assets/Scenes/SafeMode.unity
     guid: d6026a5a0bc180a4883b6c6463ec285e
+  - enabled: 1
+    path: Assets/Scenes/1. MainMenu.unity
+    guid: 2b2a56ed03fefc642877a61ebd61b9e0
+  - enabled: 1
+    path: Assets/Scenes/2. Level Select.unity
+    guid: 0a774737de61f8540bfdb7e775bfe4c4
+  - enabled: 1
+    path: Assets/Scenes/ChallengeMode.unity
+    guid: 169143ca1e7738441b5b42728342e16d
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 75c47e9d9520a2e438a5e5295a44c748, type: 2}
