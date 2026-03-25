@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class PlayerFall : MonoBehaviour
 {
@@ -7,10 +6,15 @@ public class PlayerFall : MonoBehaviour
 
     void Update()
     {
+        if (GameManager.Instance != null && GameManager.Instance.IsGameEnded)
+            return;
+
         if (transform.position.y < fallHeight)
         {
-            Debug.Log("GAME OVER");
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.LoseGame();
+            }
         }
     }
 }

@@ -1,58 +1,53 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
+﻿using UnityEngine;
 
 namespace FCG
 {
     public class CharacterControl : MonoBehaviour
     {
-        public float speed = 10.0f;
-        public float sensitivity = 100f;
+        public float moveSpeed = 6f;
+        public float runMultiplier = 1.2f;
+        public float mouseSensitivity = 100f;
+        public float jumpHeight = 1.2f;
+        public float gravity = -20f;
 
         private float xRotation = 0f;
         private float yRotation = 0f;
 
         private Transform cam;
-        private CharacterController charController;
+        private CharacterController controller;
 
-        private Vector3 initialPosition = Vector3.zero;
+        private Vector3 velocity;
+        private bool isGrounded;
 
         void Start()
         {
-
             Cursor.lockState = CursorLockMode.Locked;
 
-            charController = GetComponent<CharacterController>();
+            controller = GetComponent<CharacterController>();
             cam = transform.Find("Camera");
 
+            if (cam == null)
+            {
+                Debug.LogError("Camera child not found inside First Person Player.");
+            }
+
             cam.localRotation = Quaternion.identity;
-
-            initialPosition = transform.position;
-
-#if !ENABLE_LEGACY_INPUT_MANAGER
-            Debug.LogWarning("⚠️ Input System is set to 'New' only. This script uses the old Input Manager. To fix this, go to Edit > Project Settings > Player > Active Input Handling and set it to 'Both'.");
-#endif
-
         }
 
         void Update()
         {
+            if (GameManager.Instance != null && GameManager.Instance.IsGameEnded)
+                return;
 
-            CameraMovement();
-            MoveCharacter();
-
-            if (transform.position.y < -10)
-                transform.position = initialPosition;
+            HandleLook();
+            HandleMovement();
         }
 
-        void CameraMovement()
+        void HandleLook()
         {
-
 #if ENABLE_LEGACY_INPUT_MANAGER
-
-            float mouseX = Input.GetAxisRaw("Mouse X") * sensitivity * Time.deltaTime;
-            float mouseY = Input.GetAxisRaw("Mouse Y") * sensitivity * Time.deltaTime;
+            float mouseX = Input.GetAxisRaw("Mouse X") * mouseSensitivity * Time.deltaTime;
+            float mouseY = Input.GetAxisRaw("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
             yRotation += mouseX;
             xRotation -= mouseY;
@@ -63,18 +58,32 @@ namespace FCG
 #endif
         }
 
-        void MoveCharacter()
+        void HandleMovement()
         {
 #if ENABLE_LEGACY_INPUT_MANAGER
+            isGrounded = controller.isGrounded;
+
+            if (isGrounded && velocity.y < 0)
+            {
+                velocity.y = -2f;
+            }
 
             float moveX = Input.GetAxis("Horizontal");
             float moveZ = Input.GetAxis("Vertical");
 
-            Vector3 move = (transform.right * moveX) + (transform.forward * moveZ);
-            move = Vector3.ClampMagnitude(move, 1.0f);
+            Vector3 move = transform.right * moveX + transform.forward * moveZ;
+            move = Vector3.ClampMagnitude(move, 1f);
 
-            float finalSpeed = Input.GetKey(KeyCode.LeftShift) ? speed * 1.2f : speed;
-            charController.SimpleMove(move * finalSpeed);
+            float finalSpeed = Input.GetKey(KeyCode.LeftShift) ? moveSpeed * runMultiplier : moveSpeed;
+            controller.Move(move * finalSpeed * Time.deltaTime);
+
+            if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+            {
+                velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            }
+
+            velocity.y += gravity * Time.deltaTime;
+            controller.Move(velocity * Time.deltaTime);
 #endif
         }
     }

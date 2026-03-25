@@ -2,17 +2,20 @@ using UnityEngine;
 
 public class CakeCollect : MonoBehaviour
 {
-    public int scoreValue = 10;
+    public int scoreValue = 100;
+    private bool collected = false;
 
     private void OnTriggerEnter(Collider other)
     {
+        if (collected) return;
+
         if (other.CompareTag("Player"))
         {
-            ScoreManager scoreManager = FindObjectOfType<ScoreManager>();
+            collected = true;
 
-            if (scoreManager != null)
+            if (GameManager.Instance != null)
             {
-                scoreManager.AddScore(scoreValue);
+                GameManager.Instance.CollectCake(scoreValue);
             }
 
             gameObject.SetActive(false);
