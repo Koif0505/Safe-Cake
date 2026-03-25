@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,8 +19,12 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI cakeText;
     public TextMeshProUGUI timerText;
+
     public GameObject winPanel;
     public GameObject losePanel;
+
+    public TextMeshProUGUI winScoreText;
+    public TextMeshProUGUI loseScoreText;
 
     void Awake()
     {
@@ -100,7 +105,11 @@ public class GameManager : MonoBehaviour
         score += 500;
         UpdateUI();
 
-        if (winPanel != null) winPanel.SetActive(true);
+        if (winScoreText != null)
+            winScoreText.text = "Final Score: " + score;
+
+        if (winPanel != null)
+            winPanel.SetActive(true);
 
         Debug.Log("YOU WIN");
     }
@@ -111,9 +120,18 @@ public class GameManager : MonoBehaviour
 
         IsGameEnded = true;
 
-        if (losePanel != null) losePanel.SetActive(true);
+        if (loseScoreText != null)
+            loseScoreText.text = "Score: " + score;
+
+        if (losePanel != null)
+            losePanel.SetActive(true);
 
         Debug.Log("GAME OVER");
+    }
+
+    public void RestartScene()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     void UpdateUI()
