@@ -67,6 +67,7 @@ public class GameManager : MonoBehaviour
         if (useTimer)
         {
             timeRemaining -= Time.deltaTime;
+
             if (timeRemaining <= 0)
             {
                 timeRemaining = 0;
@@ -134,12 +135,18 @@ public class GameManager : MonoBehaviour
         {
             if (collectedCakes == 3)
             {
-                SetHint("Keep going carefully. Go to Cake " + nextCakeIndex + "!");
+                SetHint("Be careful on narrow beams. Go to Cake " + nextCakeIndex + "!");
             }
 
-            if (collectedCakes == 5 && !switchedToNight)
+            if (collectedCakes == 5)
             {
-                SetHint("It is getting dark... Go to Cake " + nextCakeIndex + "!");
+                SetHint("The wind is getting stronger. Go to Cake " + nextCakeIndex + "!");
+            }
+
+            if (collectedCakes == 7 && !switchedToNight)
+            {
+                SetHint("Night is coming... Be careful! Go to Cake " + nextCakeIndex + "!");
+
                 if (dayNight != null)
                 {
                     dayNight.SetNightMode();
@@ -149,7 +156,7 @@ public class GameManager : MonoBehaviour
 
             if (collectedCakes == 8)
             {
-                SetHint("Almost there. Go to Cake " + nextCakeIndex + "!");
+                SetHint("It's getting darker... Go to Cake " + nextCakeIndex + "!");
             }
         }
         else if (GameSession.selectedMode == "Challenge")
@@ -159,9 +166,15 @@ public class GameManager : MonoBehaviour
                 SetHint("Hurry up! Go to Cake " + nextCakeIndex + "!");
             }
 
-            if (collectedCakes == 5 && !switchedToNight)
+            if (collectedCakes == 6)
+            {
+                SetHint("The challenge is getting harder! Go to Cake " + nextCakeIndex + "!");
+            }
+
+            if (collectedCakes == 7 && !switchedToNight)
             {
                 SetHint("Night has fallen. Go to Cake " + nextCakeIndex + "!");
+
                 if (dayNight != null)
                 {
                     dayNight.SetNightMode();
