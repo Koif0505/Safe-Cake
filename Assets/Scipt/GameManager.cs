@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
+using FCG;
 
 public class GameManager : MonoBehaviour
 {
@@ -14,8 +15,10 @@ public class GameManager : MonoBehaviour
     [Header("Runtime")]
     public int collectedCakes = 0;
     public int score = 0;
+    public int nextCakeIndex = 1;
     public bool IsGameEnded { get; private set; } = false;
     private bool finishUnlocked = false;
+    private bool switchedToNight = false;
 
     [Header("UI")]
     public TextMeshProUGUI scoreText;
@@ -31,6 +34,7 @@ public class GameManager : MonoBehaviour
     [Header("Scene Objects")]
     public GameObject finishFlag;
     public Light directionalLight;
+    public DayNight dayNight;
 
     void Awake()
     {
@@ -46,6 +50,11 @@ public class GameManager : MonoBehaviour
         if (finishFlag != null) finishFlag.SetActive(false);
         if (winPanel != null) winPanel.SetActive(false);
         if (losePanel != null) losePanel.SetActive(false);
+
+        if (dayNight != null)
+        {
+            dayNight.SetDayMode();
+        }
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -75,23 +84,30 @@ public class GameManager : MonoBehaviour
             useTimer = false;
             timeRemaining = 0f;
             totalCakes = 10;
-            SetHint("Collect all cakes carefully.");
+            SetHint("Collect Cake 1 first.");
         }
         else if (GameSession.selectedMode == "Challenge")
         {
             useTimer = true;
             timeRemaining = 180f;
             totalCakes = 10;
-            SetHint("Collect all cakes before time runs out!");
+            SetHint("Collect Cake 1 first. Hurry up!");
         }
     }
 
-    public void CollectCake(int scoreValue)
+    public bool CanCollectCake(int cakeIndex)
+    {
+        return !IsGameEnded && cakeIndex == nextCakeIndex;
+    }
+
+    public void CollectCake(int cakeIndex, int scoreValue)
     {
         if (IsGameEnded) return;
+        if (cakeIndex != nextCakeIndex) return;
 
         collectedCakes++;
         score += scoreValue;
+        nextCakeIndex++;
 
         TriggerProgressionEvents();
         UpdateUI();
@@ -100,6 +116,16 @@ public class GameManager : MonoBehaviour
         {
             UnlockFinish();
         }
+        else
+        {
+            SetHint("Go to Cake " + nextCakeIndex + "!");
+        }
+    }
+
+    public void ShowWrongOrderHint(int wrongCakeIndex)
+    {
+        if (IsGameEnded) return;
+        SetHint("You must collect Cake " + nextCakeIndex + " first!");
     }
 
     void TriggerProgressionEvents()
@@ -107,30 +133,46 @@ public class GameManager : MonoBehaviour
         if (GameSession.selectedMode == "Safe")
         {
             if (collectedCakes == 3)
-                SetHint("Be careful on narrow beams.");
+            {
+                SetHint("Keep going carefully. Go to Cake " + nextCakeIndex + "!");
+            }
 
-            if (collectedCakes == 5)
-                SetHint("The wind is getting stronger.");
+            if (collectedCakes == 5 && !switchedToNight)
+            {
+                SetHint("It is getting dark... Go to Cake " + nextCakeIndex + "!");
+                if (dayNight != null)
+                {
+                    dayNight.SetNightMode();
+                    switchedToNight = true;
+                }
+            }
 
             if (collectedCakes == 8)
             {
-                SetHint("It's getting darker...");
-                MakeSceneDarker();
+                SetHint("Almost there. Go to Cake " + nextCakeIndex + "!");
             }
         }
         else if (GameSession.selectedMode == "Challenge")
         {
             if (collectedCakes == 3)
-                SetHint("Hurry up!");
-
-            if (collectedCakes == 6)
             {
-                SetHint("The challenge is getting harder!");
-                MakeSceneDarker();
+                SetHint("Hurry up! Go to Cake " + nextCakeIndex + "!");
+            }
+
+            if (collectedCakes == 5 && !switchedToNight)
+            {
+                SetHint("Night has fallen. Go to Cake " + nextCakeIndex + "!");
+                if (dayNight != null)
+                {
+                    dayNight.SetNightMode();
+                    switchedToNight = true;
+                }
             }
 
             if (collectedCakes == 8)
-                SetHint("Almost there!");
+            {
+                SetHint("Almost there! Go to Cake " + nextCakeIndex + "!");
+            }
         }
     }
 
@@ -150,14 +192,6 @@ public class GameManager : MonoBehaviour
 
         if (finishUnlocked)
             WinGame();
-    }
-
-    void MakeSceneDarker()
-    {
-        if (directionalLight != null)
-        {
-            directionalLight.intensity = Mathf.Max(0.2f, directionalLight.intensity * 0.5f);
-        }
     }
 
     public void WinGame()

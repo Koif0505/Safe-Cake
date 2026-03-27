@@ -2,23 +2,26 @@ using UnityEngine;
 
 public class CakeCollect : MonoBehaviour
 {
+    public int cakeIndex = 1;
     public int scoreValue = 100;
+
     private bool collected = false;
 
     private void OnTriggerEnter(Collider other)
     {
         if (collected) return;
+        if (!other.CompareTag("Player")) return;
+        if (GameManager.Instance == null) return;
 
-        if (other.CompareTag("Player"))
+        if (GameManager.Instance.CanCollectCake(cakeIndex))
         {
             collected = true;
-
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.CollectCake(scoreValue);
-            }
-
+            GameManager.Instance.CollectCake(cakeIndex, scoreValue);
             gameObject.SetActive(false);
+        }
+        else
+        {
+            GameManager.Instance.ShowWrongOrderHint(cakeIndex);
         }
     }
 }

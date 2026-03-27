@@ -1,11 +1,9 @@
-﻿
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 /*
-Just an example of how to switch day and night at runtime
-Requires DayNight prefab to be in scene (Hierarchy)
+Runtime debug keys have been disabled by default.
 */
 
 namespace FCG
@@ -15,25 +13,23 @@ namespace FCG
         DayNight dayNight;
 
         public CityGenerator cityGenerator;
-        
+
         [Space(10)]
-        [Range(70,130)]
+        [Range(70, 130)]
         public float downtownSize = 100;
+
+        public bool allowDebugKeys = false;
 
         private void Start()
         {
             dayNight = FindObjectOfType<DayNight>();
-
-#if !ENABLE_LEGACY_INPUT_MANAGER
-            Debug.LogWarning("⚠️ Input System is set to 'New' only. This script uses the old Input Manager. To fix this, go to Edit > Project Settings > Player > Active Input Handling and set it to 'Both'.");
-#endif
-
         }
 
         private void Update()
         {
-#if ENABLE_LEGACY_INPUT_MANAGER
+            if (!allowDebugKeys) return;
 
+#if ENABLE_LEGACY_INPUT_MANAGER
             if (Input.GetKeyDown(KeyCode.N))
             {
                 if (dayNight)
