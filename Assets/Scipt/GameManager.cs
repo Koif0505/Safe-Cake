@@ -39,6 +39,9 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI winScoreText;
     public TextMeshProUGUI loseScoreText;
 
+    [Header("Question")]
+    public bool cake6HintUnlocked = false;
+
     void Awake()
     {
         if (Instance == null) Instance = this;
@@ -69,7 +72,6 @@ public class GameManager : MonoBehaviour
     {
         if (IsGameEnded) return;
 
-        // Rơi xuống
         if (playerTransform != null && playerTransform.position.y < -10f)
         {
             Respawn(fallPenalty);
@@ -94,7 +96,6 @@ public class GameManager : MonoBehaviour
         collectedCakes++;
         score += scoreValue;
 
-        // lưu checkpoint tại vị trí hiện tại sau khi ăn đúng
         lastCheckpoint = playerTransform.position;
 
         nextCakeIndex++;
@@ -106,6 +107,12 @@ public class GameManager : MonoBehaviour
 
         if (collectedCakes >= totalCakes)
         {
+            if (dayNight != null)
+            {
+                dayNight.SetDayMode();
+                switchedToNight = false;
+            }
+
             WinGame();
         }
         else
@@ -136,17 +143,17 @@ public class GameManager : MonoBehaviour
         }
         else if (collectedCakes == 4)
         {
-            SetHint("Run toward the road. Cake 5 is easy, but traffic is dangerous.");
-        }
-        else if (collectedCakes == 5)
-        {
-            SetHint("Night falls. Answer the question to unlock the hint for Cake 6.");
+            SetHint("Night falls. Get ready for Cake 5.");
 
             if (dayNight != null && !switchedToNight)
             {
                 dayNight.SetNightMode();
                 switchedToNight = true;
             }
+        }
+        else if (collectedCakes == 5)
+        {
+            SetHint("Answer the question to unlock Cake 6.");
         }
     }
 
@@ -225,6 +232,18 @@ public class GameManager : MonoBehaviour
         score -= amount;
         if (score < 0) score = 0;
         UpdateUI();
+    }
+
+    // ================= HINT HELPERS =================
+
+    public void UnlockCake6Hint()
+    {
+        cake6HintUnlocked = true;
+    }
+
+    public void SetPublicHint(string msg)
+    {
+        SetHint(msg);
     }
 
     // ================= WIN / LOSE =================
