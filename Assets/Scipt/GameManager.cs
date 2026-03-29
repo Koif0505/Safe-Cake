@@ -2,6 +2,7 @@
 using TMPro;
 using UnityEngine.SceneManagement;
 using FCG;
+using System.Collections; // Thêm dòng này vào đầu script
 
 public class GameManager : MonoBehaviour
 {
@@ -33,6 +34,8 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI cakeText;
     public TextMeshProUGUI hintText;
     public TextMeshProUGUI distanceText;
+    public GameObject riddlePanel;
+    public TextMeshProUGUI riddleTimerText;
 
     public GameObject winPanel;
     public GameObject losePanel;
@@ -66,6 +69,7 @@ public class GameManager : MonoBehaviour
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        if (riddlePanel != null) riddlePanel.SetActive(false); // Thêm dòng này!
     }
 
     void Update()
@@ -129,32 +133,45 @@ public class GameManager : MonoBehaviour
 
     void TriggerProgressionEvents()
     {
-        if (collectedCakes == 1)
+        switch (collectedCakes)
         {
-            SetHint("Jump to the plank, then climb up to Cake 2.");
+            case 1:
+                SetHint("Cake 2: Nhảy ra tấm ván, leo lên sân thượng!");
+                break;
+            case 2:
+                SetHint("Cake 3: Nhảy xuống mái dưới, nhìn bên phải cửa thang máy!");
+                // Kích hoạt mũi tên chỉ hướng nếu bạn làm xong
+                break;
+            case 3:
+                SetHint("Cake 4: Rơi tự do xuống tầng dưới, tìm đường hẹp!");
+                break;
+            case 4:
+                SetHint("CẢNH BÁO: Trời tối! Cake 5 đang ở giữa đường tử thần.");
+                if (dayNight != null) dayNight.SetNightMode();
+                break;
+            case 5:
+                // Dừng game 10s để giải đố
+                StartCoroutine(RiddleEvent());
+                break;
         }
-        else if (collectedCakes == 2)
-        {
-            SetHint("Go down to the lower roof, then look to the right of the elevator-facing direction.");
-        }
-        else if (collectedCakes == 3)
-        {
-            SetHint("Drop down and move to the narrow high plank to reach Cake 4.");
-        }
-        else if (collectedCakes == 4)
-        {
-            SetHint("Night falls. Get ready for Cake 5.");
+    }
 
-            if (dayNight != null && !switchedToNight)
-            {
-                dayNight.SetNightMode();
-                switchedToNight = true;
-            }
-        }
-        else if (collectedCakes == 5)
+    IEnumerator RiddleEvent()
+    {
+        Time.timeScale = 0; // Ngừng thời gian
+        riddlePanel.SetActive(true);
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        float timer = 10f;
+        while (timer > 0)
         {
-            SetHint("Answer the question to unlock Cake 6.");
+            timer -= Time.unscaledDeltaTime; // Dùng unscaled vì timeScale = 0
+            riddleTimerText.text = "Thời gian: " + Mathf.Ceil(timer) + "s";
+            yield return null;
         }
+        // Nếu hết giờ mà chưa chọn -> Thua
+        if (!cake6HintUnlocked) LoseGame();
     }
 
     // ================= DISTANCE UI =================
@@ -311,5 +328,22 @@ public class GameManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         SceneManager.LoadScene("1.MainMenu");
+    }
+    // Hàm này gán vào Button Trả lời đúng
+    public void OnClickCorrectAnswer()
+    {
+        cake6HintUnlocked = true; // Mở khóa hint
+        Time.timeScale = 1f; // Chạy lại thời gian
+        riddlePanel.SetActive(false); // Ẩn bảng câu hỏi
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        SetHint("Chính xác! Cake 6 đang dính trên một cái cây gần ghế đá.");
+    }
+
+    // Hàm này gán vào Button Trả lời sai
+    public void OnClickWrongAnswer()
+    {
+        SubtractScore(10); // Phạt điểm
+        SetHint("Sai rồi! Thử lại nhanh lên, sắp hết giờ!");
     }
 }
