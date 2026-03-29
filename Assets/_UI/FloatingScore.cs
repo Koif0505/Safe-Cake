@@ -1,12 +1,33 @@
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 
 public class FloatingScore : MonoBehaviour
 {
-    void Start() { Destroy(gameObject, 1f); } // Bi?n m?t sau 1 gi�y
+    public float moveSpeed = 100f;
+    public float duration = 1.5f;
+
+    private TextMeshProUGUI text;
+    private float timer = 0f;
+
+    void Start()
+    {
+        text = GetComponent<TextMeshProUGUI>();
+        // Lệnh này cực kỳ quan trọng để dọn dẹp bộ nhớ
+        Destroy(gameObject, duration);
+    }
+
     void Update()
     {
-        // Bay l�n tr�n v� m? d?n
-        transform.localPosition += new Vector3(0, 100f * Time.deltaTime, 0);
+        // Bay lên theo trục Y của màn hình
+        transform.localPosition += Vector3.up * moveSpeed * Time.deltaTime;
+
+        // Mờ dần theo thời gian
+        timer += Time.deltaTime;
+        if (text != null)
+        {
+            Color c = text.color;
+            c.a = Mathf.Lerp(1, 0, timer / duration);
+            text.color = c;
+        }
     }
 }
