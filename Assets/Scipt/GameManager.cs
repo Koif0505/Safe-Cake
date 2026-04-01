@@ -4,17 +4,22 @@ using UnityEngine.SceneManagement;
 using FCG;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
-    private bool isBlinking = false;
-    private bool inputHandled = false; // Ngăn việc bấm giữ phím bị nhảy menu liên tục
+    private bool inputHandled = false;
+    private bool isRiddlePassed = false;
 
     [Header("Player & Camera")]
     public Transform playerTransform;
     public Transform cameraTransform;
+    public Camera mainVRCamera;
+    public Camera winCamera;
     private CharacterController playerController;
+    private CharacterControlHybrid playerScript;
 
     [Header("Game State")]
     public bool isGameStarted = false;
@@ -24,18 +29,14 @@ public class GameManager : MonoBehaviour
     public int nextCakeIndex = 1;
     public bool IsGameEnded { get; private set; } = false;
 
-    [Header("Speedrun & Combo")]
-    public float totalGameTimer = 0f;
-    private float lastCakeTime;
-    public float comboThreshold = 8f;
+    [Header("Lose Y-Levels")]
+    public float startRoofLimitY = -10f;
+    public float groundLimitY = -180f;
+    public CanvasGroup losePanelGroup;
 
-    [Header("Smart Lose Logic")]
-    public float groundLevelY = 1.5f;
-
-    [Header("Checkpoint & Continue")]
-    private Vector3 lastCheckpoint;
-    public int continueCost = 10;
-    public GameObject continueButton;
+    [Header("Win Celebration")]
+    public GameObject fireworksObject;
+    public string jumpAnimationParam = "WinJump";
 
     [Header("Targets")]
     public Transform[] cakeTargets;
@@ -48,216 +49,189 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI distanceText;
     public TextMeshProUGUI timerText;
 
-    [Header("Panels & Start Screen")]
+    [Header("Panels")]
     public GameObject startPanel;
-    public GameObject howToPlayPanel;
-    public GameObject elevatorDoors;
+    public GameObject howToPlayPanel; // ĐÃ THÊM LẠI - FIX LỖI CS0103
     public GameObject riddlePanel;
     public TextMeshProUGUI riddleTimerText;
     public GameObject winPanel;
-    public CanvasGroup winPanelGroup;
     public GameObject losePanel;
-    public TextMeshProUGUI winScoreText;
+    public GameObject pausePanel;
     public TextMeshProUGUI loseReasonText;
 
-    [Header("Effects & Quest UI")]
+    [Header("Effects")]
     public GameObject floatingScorePrefab;
     public Transform uiOverlayParent;
     public AudioClip collectSound;
     public TextMeshProUGUI questNotificationText;
-    public bool cake6HintUnlocked = false;
 
     void Awake() { Instance = this; }
 
     void Start()
     {
         playerController = playerTransform.GetComponent<CharacterController>();
-        lastCheckpoint = playerTransform.position;
-        lastCakeTime = Time.time - 10f;
-
-        isGameStarted = false;
-        if (startPanel != null) startPanel.SetActive(true);
-        if (howToPlayPanel != null) howToPlayPanel.SetActive(false);
-        if (winPanel != null) winPanel.SetActive(false);
-        if (losePanel != null) losePanel.SetActive(false);
-        if (riddlePanel != null) riddlePanel.SetActive(false);
-        if (questNotificationText != null) questNotificationText.gameObject.SetActive(false);
-        if (elevatorDoors != null) elevatorDoors.SetActive(true);
-        if (dayNight != null) dayNight.SetDayMode();
-
+        playerScript = playerTransform.GetComponent<CharacterControlHybrid>();
+        Time.timeScale = 1f;
+        if (losePanel) { losePanel.SetActive(false); if (losePanelGroup) losePanelGroup.alpha = 0; }
+        if (pausePanel) pausePanel.SetActive(false);
         UpdateUI();
-        // Cho phép hiện chuột lúc đầu để dự phòng
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
     }
 
     void Update()
     {
-        // Nếu chưa bấm Start thì chỉ xử lý Menu
-        if (!isGameStarted)
+        if (!isGameStarted || IsGameEnded || (riddlePanel && riddlePanel.activeSelf))
         {
             HandleMenuInput();
             return;
         }
-
-        // Logic game khi đang chơi
-        if (IsGameEnded) return;
-
-        totalGameTimer += Time.deltaTime;
         CheckSmartLoseCondition();
         UpdateDistanceUI();
         UpdateTimerUI();
+        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.JoystickButton7)) TogglePause();
     }
 
-    // --- HÀM XỬ LÝ MENU GỘP CHUNG (FIX LỖI) ---
     void HandleMenuInput()
     {
-        // 1. Lấy dữ liệu từ Phím (A/D/S/Mũi tên)
-        bool leftK = Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow);
-        bool rightK = Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow);
-        bool downK = Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow);
-
-        // 2. Lấy dữ liệu từ Joystick (Controller VR)
         float hAxis = Input.GetAxisRaw("Horizontal");
-        float vAxis = Input.GetAxisRaw("Vertical");
+        bool leftK = Input.GetKeyDown(KeyCode.A) || hAxis < -0.5f;
+        bool rightK = Input.GetKeyDown(KeyCode.D) || hAxis > 0.5f;
 
-        if (!inputHandled)
+        if (!inputHandled && (leftK || rightK))
         {
-            // Bấm TRÁI (Phím hoặc Gạt cần trái) -> How To Play
-            if (leftK || hAxis < -0.5f)
-            {
-                OnClickHowToPlay();
-                inputHandled = true;
-            }
-            // Bấm PHẢI (Phím hoặc Gạt cần phải) -> Start Game
-            else if (rightK || hAxis > 0.5f)
-            {
-                OnClickStart();
-                inputHandled = true;
-            }
-            // Bấm XUỐNG -> Thoát hướng dẫn
-            else if (downK || (vAxis < -0.5f && howToPlayPanel.activeSelf))
-            {
-                OnClickCloseHowToPlay();
-                inputHandled = true;
-            }
+            if (riddlePanel && riddlePanel.activeSelf) { ProcessRiddle(leftK); inputHandled = true; }
+            else if (!isGameStarted && rightK) { OnClickStart(); inputHandled = true; }
+            else if (IsGameEnded && leftK) { RestartScene(); inputHandled = true; }
         }
+        if (Mathf.Abs(hAxis) < 0.1f) inputHandled = false;
+    }
 
-        // Reset lại cờ khi người chơi thả phím/thả cần Joystick ra
-        if (Mathf.Abs(hAxis) < 0.1f && Mathf.Abs(vAxis) < 0.1f && !Input.anyKey)
+    // --- FIX LỖI CS7036: Thêm giá trị mặc định cho reason ---
+    public void LoseGame(string reason = "BẠN ĐÃ THẤT BẠI!")
+    {
+        if (IsGameEnded) return;
+        IsGameEnded = true;
+        StartCoroutine(LoseRoutine(reason));
+    }
+
+    IEnumerator LoseRoutine(string reason)
+    {
+        yield return new WaitForSeconds(1.0f);
+        if (losePanel) losePanel.SetActive(true);
+        if (loseReasonText) loseReasonText.text = reason;
+        float t = 0;
+        while (t < 1f)
         {
-            inputHandled = false;
+            t += Time.unscaledDeltaTime;
+            if (losePanelGroup) losePanelGroup.alpha = t;
+            yield return null;
         }
+        Time.timeScale = 0;
     }
 
-    public void OnClickStart()
-    {
-        isGameStarted = true;
-        if (startPanel != null) startPanel.SetActive(false);
-        if (howToPlayPanel != null) howToPlayPanel.SetActive(false);
-
-        // ElevatorDoors sẽ được DoorController xử lý trượt, nên ở đây mình không SetActive(false) nữa
-        // nhường quyền cho DoorController trượt cửa sau 1.5s
-
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-        StartCoroutine(ShowQuestNotification("GAME BẮT ĐẦU! HÃY ĂN CAKE 1"));
-    }
-
-    public void OnClickHowToPlay()
-    {
-        if (howToPlayPanel != null) howToPlayPanel.SetActive(true);
-        if (startPanel != null) startPanel.SetActive(false);
-        Cursor.visible = true;
-        Cursor.lockState = CursorLockMode.None;
-    }
-
-    public void OnClickCloseHowToPlay()
-    {
-        if (howToPlayPanel != null) howToPlayPanel.SetActive(false);
-        if (startPanel != null) startPanel.SetActive(true);
-    }
-
-    // ================= PHẦN LOGIC CÒN LẠI =================
     void CheckSmartLoseCondition()
     {
-        if (playerTransform == null) return;
+        if (IsGameEnded || !playerController.isGrounded) return;
         float pY = playerTransform.position.y;
-        if (nextCakeIndex <= 4) { if (pY < groundLevelY) LoseGame("Rơi xuống phố!"); }
-        else { if (pY < -15f) LoseGame("Rơi khỏi thành phố!"); }
+        if (collectedCakes < 2 && pY < startRoofLimitY) LoseGame("BẠN VỪA RƠI KHỎI TÒA NHÀ!");
+        else if (collectedCakes >= 2 && collectedCakes < 4 && pY < groundLimitY) LoseGame("BẠN ĐÃ CHẠM XUỐNG ĐẤT!");
+    }
+
+    public void HitByCar() { LoseGame("BẠN VỪA BỊ XE TÔNG TRÚNG!"); }
+
+    void ProcessRiddle(bool correct) { StartCoroutine(RiddleResult(correct)); }
+    IEnumerator RiddleResult(bool correct)
+    {
+        Image leftImg = riddlePanel.transform.GetChild(0).GetComponent<Image>();
+        Image rightImg = riddlePanel.transform.GetChild(1).GetComponent<Image>();
+        if (correct)
+        {
+            if (leftImg) leftImg.color = Color.green;
+            score += 10; SpawnFloatingScore(10, false);
+        }
+        else
+        {
+            if (rightImg) rightImg.color = Color.red;
+            score = Mathf.Max(0, score - 10); SpawnFloatingScore(-10, false);
+        }
+        yield return new WaitForSecondsRealtime(1.0f);
+        riddlePanel.SetActive(false);
+        Time.timeScale = 1f;
+        isRiddlePassed = true;
+        if (hintText) hintText.text = "Hint: Cake 6 ở gốc cây có hàng ghế đá.";
     }
 
     public void CollectCake(int index, int scoreValue)
     {
         if (!CanCollectCake(index)) return;
-        bool isCombo = (collectedCakes > 0 && (Time.time - lastCakeTime <= comboThreshold));
-        int finalScore = isCombo ? scoreValue * 2 : scoreValue;
-        score += finalScore; collectedCakes++;
-        lastCakeTime = Time.time; lastCheckpoint = playerTransform.position;
-        SpawnFloatingScore(finalScore, isCombo);
-        if (collectSound != null) AudioSource.PlayClipAtPoint(collectSound, playerTransform.position);
-        nextCakeIndex++; TriggerQuestEvents(); UpdateUI();
-        if (collectedCakes >= totalCakes) WinGame();
+        score += scoreValue; collectedCakes++;
+        SpawnFloatingScore(scoreValue, false);
+        if (collectSound) AudioSource.PlayClipAtPoint(collectSound, playerTransform.position);
+        nextCakeIndex++;
+        if (nextCakeIndex <= totalCakes)
+        {
+            Transform next = cakeTargets[nextCakeIndex - 1];
+            var effect = next.GetComponent<CakeEffect>();
+            if (effect)
+            {
+                float dur = 10f; float hMul = 2f; bool glow = true;
+                if (nextCakeIndex == 2) { dur = 5f; hMul = 1f; glow = false; }
+                else if (nextCakeIndex == 3) { dur = 12f; }
+                else if (nextCakeIndex == 6) { glow = false; }
+                effect.TriggerEffect(dur, hMul, glow);
+            }
+        }
+        UpdateUI();
+        if (collectedCakes >= totalCakes) StartCoroutine(WinCelebration());
+        else TriggerQuestEvents();
     }
 
-    void SpawnFloatingScore(int v, bool c)
+    IEnumerator WinCelebration()
     {
-        if (floatingScorePrefab == null || uiOverlayParent == null) return;
-        GameObject go = Instantiate(floatingScorePrefab, uiOverlayParent);
-        go.transform.localPosition = Vector3.zero; go.transform.localScale = Vector3.one;
-        TextMeshProUGUI txt = go.GetComponent<TextMeshProUGUI>();
-        if (txt != null) { txt.text = "+" + v + (c ? " COMBO!" : ""); if (c) txt.color = Color.yellow; }
+        if (dayNight) dayNight.SetDayMode();
+        IsGameEnded = true;
+        if (playerScript) playerScript.enabled = false;
+        if (mainVRCamera) mainVRCamera.gameObject.SetActive(false);
+        if (winCamera) { winCamera.gameObject.SetActive(true); winCamera.transform.LookAt(playerTransform.position + Vector3.up); }
+        if (fireworksObject) fireworksObject.SetActive(true);
+        yield return new WaitForSeconds(5.0f);
+        if (winPanel) winPanel.SetActive(true);
     }
 
-    public void ShowWrongOrderHint(int index) { if (!IsGameEnded) SetHint("Hãy ăn Cake " + nextCakeIndex + " trước!"); }
+    public void OnClickStart() { isGameStarted = true; if (startPanel) startPanel.SetActive(false); Cursor.lockState = CursorLockMode.Locked; }
+
+    // --- FIX LỖI CS0103: Thêm lại hàm này ---
+    public void OnClickHowToPlay()
+    {
+        if (howToPlayPanel) howToPlayPanel.SetActive(true);
+        if (startPanel) startPanel.SetActive(false);
+    }
+
+    public void OnClickCloseHowToPlay()
+    {
+        if (howToPlayPanel) howToPlayPanel.SetActive(false);
+        if (startPanel) startPanel.SetActive(true);
+    }
+
+    void UpdateUI() { if (scoreText) scoreText.text = "Score: " + score; if (cakeText) cakeText.text = "Cakes: " + collectedCakes + "/" + totalCakes; }
+    void UpdateTimerUI() { if (timerText) timerText.text = "Time: " + Time.timeSinceLevelLoad.ToString("F1") + "s"; }
+    void UpdateDistanceUI() { Transform t = GetTarget(); if (t && distanceText) distanceText.text = "Next: " + Vector3.Distance(playerTransform.position, t.position).ToString("F1") + "m"; }
+    Transform GetTarget() { int i = nextCakeIndex - 1; return (i >= 0 && i < cakeTargets.Length) ? cakeTargets[i] : null; }
+    void SpawnFloatingScore(int v, bool c) { if (floatingScorePrefab && uiOverlayParent) { GameObject g = Instantiate(floatingScorePrefab, uiOverlayParent); g.transform.localPosition = Vector3.zero; TextMeshProUGUI txt = g.GetComponent<TextMeshProUGUI>(); if (txt) { txt.text = (v > 0 ? "+" : "") + v; txt.color = v > 0 ? Color.yellow : Color.red; } } }
+    public void RestartScene() { Time.timeScale = 1f; SceneManager.LoadScene(SceneManager.GetActiveScene().name); }
+    public void TogglePause() { if (IsGameEnded) return; bool p = Time.timeScale == 0; Time.timeScale = p ? 1f : 0f; if (pausePanel) pausePanel.SetActive(!p); }
+    public bool CanCollectCake(int i) => isGameStarted && !IsGameEnded && i == nextCakeIndex;
 
     void TriggerQuestEvents()
     {
-        string questMsg = "";
-        switch (collectedCakes)
+        string m = ""; switch (collectedCakes)
         {
-            case 1: questMsg = "CHẠY RA TẤM VÁN ĂN CAKE 2"; break;
-            case 2: questMsg = "NHẢY XUỐNG MÁI DƯỚI!"; break;
-            case 3: questMsg = "TÌM ĐƯỜNG ĂN CAKE 4!"; break;
-            case 4: questMsg = "XUỐNG ĐẠI LỘ TÌM CAKE 5!"; if (dayNight != null) dayNight.SetNightMode(); break;
-            case 5: StartCoroutine(RiddleEvent()); break;
+            case 1: m = "NHẢY QUA TẤM VÁN ĂN CAKE 2"; break;
+            case 2: m = "XUỐNG ĐƯỜNG TÌM CAKE 3!"; break;
+            case 4: if (dayNight) dayNight.SetNightMode(); break;
+            case 5: Time.timeScale = 0; riddlePanel.SetActive(true); break;
         }
-        if (!string.IsNullOrEmpty(questMsg)) StartCoroutine(ShowQuestNotification(questMsg));
+        if (questNotificationText && m != "") StartCoroutine(ShowQuest(m));
     }
-
-    IEnumerator ShowQuestNotification(string message)
-    {
-        if (questNotificationText == null) yield break;
-        questNotificationText.text = message; questNotificationText.gameObject.SetActive(true);
-        yield return new WaitForSeconds(2.5f); questNotificationText.gameObject.SetActive(false);
-    }
-
-    public void OnClickContinue()
-    {
-        if (score >= continueCost)
-        {
-            score -= continueCost; IsGameEnded = false; losePanel.SetActive(false);
-            if (playerController != null) playerController.enabled = false;
-            playerTransform.position = lastCheckpoint + Vector3.up * 5f;
-            if (playerController != null) playerController.enabled = true;
-            Time.timeScale = 1f; Cursor.lockState = CursorLockMode.Locked; Cursor.visible = false;
-            UpdateUI();
-        }
-    }
-
-    public void WinGame() { IsGameEnded = true; if (dayNight != null) dayNight.SetDayMode(); winPanel.SetActive(true); StartCoroutine(FadeInWinUI()); Cursor.lockState = CursorLockMode.None; Cursor.visible = true; }
-    public void LoseGame(string reason = "Thất bại!") { if (IsGameEnded) return; IsGameEnded = true; StartCoroutine(CameraShake(0.3f, 0.5f)); if (loseReasonText != null) loseReasonText.text = reason + "\nScore: " + score; losePanel.SetActive(true); if (continueButton != null) continueButton.SetActive(score >= continueCost); Cursor.lockState = CursorLockMode.None; Cursor.visible = true; }
-    public bool CanCollectCake(int index) => isGameStarted && !IsGameEnded && index == nextCakeIndex;
-    void UpdateUI() { if (scoreText) scoreText.text = "Score: " + score; if (cakeText) cakeText.text = "Cakes: " + collectedCakes + "/" + totalCakes; }
-    void UpdateTimerUI() { if (timerText) timerText.text = "Time: " + totalGameTimer.ToString("F1") + "s"; }
-    void UpdateDistanceUI() { Transform t = GetCurrentCakeTarget(); if (t && distanceText) distanceText.text = "Next: " + Vector3.Distance(playerTransform.position, t.position).ToString("F1") + "m"; }
-    Transform GetCurrentCakeTarget() { int i = nextCakeIndex - 1; return (i >= 0 && i < cakeTargets.Length) ? cakeTargets[i] : null; }
-    public void SetHint(string m) { if (hintText) hintText.text = m; }
-    public void SubtractScore(int a) { score = Mathf.Max(0, score - a); UpdateUI(); }
-    public void RestartScene() { Time.timeScale = 1f; SceneManager.LoadScene(SceneManager.GetActiveScene().name); }
-    public IEnumerator CameraShake(float d, float m) { Vector3 o = cameraTransform.localPosition; float e = 0; while (e < d) { cameraTransform.localPosition = o + (Vector3)Random.insideUnitCircle * m; e += Time.deltaTime; yield return null; } cameraTransform.localPosition = o; }
-    IEnumerator FadeInWinUI() { float t = 0; while (t < 1f) { t += Time.deltaTime * 0.5f; if (winPanelGroup) winPanelGroup.alpha = t; yield return null; } }
-    IEnumerator RiddleEvent() { Time.timeScale = 0; riddlePanel.SetActive(true); Cursor.lockState = CursorLockMode.None; Cursor.visible = true; float timer = 15f; while (timer > 0) { timer -= Time.unscaledDeltaTime; riddleTimerText.text = "Giải đố: " + Mathf.Ceil(timer) + "s"; yield return null; } if (!cake6HintUnlocked) LoseGame("Hết thời gian!"); }
-    public void OnClickCorrectAnswer() { cake6HintUnlocked = true; Time.timeScale = 1f; riddlePanel.SetActive(false); Cursor.visible = false; Cursor.lockState = CursorLockMode.Locked; }
-    public void OnClickWrongAnswer() { SubtractScore(10); SetHint("Sai rồi! -10 điểm."); }
+    IEnumerator ShowQuest(string m) { questNotificationText.text = m; questNotificationText.gameObject.SetActive(true); yield return new WaitForSeconds(2.5f); questNotificationText.gameObject.SetActive(false); }
+    public void ShowWrongOrderHint(int i) { if (!IsGameEnded && hintText != null) hintText.text = "Hãy ăn Cake " + nextCakeIndex + " trước!"; }
 }
