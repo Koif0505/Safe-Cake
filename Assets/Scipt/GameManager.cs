@@ -107,10 +107,11 @@ public class GameManager : MonoBehaviour
         {
             Input.gyro.enabled = true;
             lastCheckpoint = playerTransform.position;
-        } // ĐÃ SỬA: Đóng ngoặc bị thiếu ở đây
+        }
 
         lastCollectTime = Time.time - 10f;
         Time.timeScale = 1f;
+        IsGameEnded = false; // Đảm bảo khởi tạo game chưa kết thúc
 
         if (startPanel) startPanel.SetActive(true);
         if (howToPlayPanel) howToPlayPanel.SetActive(false);
@@ -155,11 +156,9 @@ public class GameManager : MonoBehaviour
 
     void HandleMenuInput()
     {
-        // 1. Lấy tín hiệu từ trục (Keyboard/Gamepad thường)
         float hAxis = Input.GetAxisRaw("Horizontal");
         float vAxis = Input.GetAxisRaw("Vertical");
 
-        // 2. Định nghĩa các điều kiện "Chọn Trái" và "Chọn Phải"
         // Hướng TRÁI: Phím A, Mũi tên trái, Trục ngang âm, hoặc Nút D trên tay cầm VR
         bool isLeftInput = Input.GetKeyDown(KeyCode.A) ||
                            Input.GetKeyDown(KeyCode.LeftArrow) ||
@@ -177,7 +176,6 @@ public class GameManager : MonoBehaviour
                            Input.GetKeyDown(KeyCode.DownArrow) ||
                            vAxis < -0.5f;
 
-        // 3. Xử lý Logic Menu
         if (!inputHandled && (isLeftInput || isRightInput || isDownInput))
         {
             // TRƯỜNG HỢP: BẢNG THUA (Lose Panel)
@@ -190,13 +188,13 @@ public class GameManager : MonoBehaviour
             // TRƯỜNG HỢP: CHƯA BẮT ĐẦU GAME
             else if (!isGameStarted)
             {
-                // Đang mở bảng hướng dẫn
+                // Đang mở bảng hướng dẫn (How To Play)
                 if (howToPlayPanel && howToPlayPanel.activeSelf)
                 {
-                    if (isRightInput) OnClickStart();           // C (Phải) -> Vào game luôn
+                    if (isRightInput) OnClickStart();           // C (Phải) -> Vào game luôn (Đã có sẵn logic)
                     else if (isDownInput) OnClickCloseHowToPlay(); // Xuống -> Đóng bảng
                 }
-                // Đang ở Menu chính
+                // Đang ở Menu chính (Start Panel)
                 else if (startPanel && startPanel.activeSelf)
                 {
                     if (isLeftInput) OnClickHowToPlay(); // D (Trái) -> Xem hướng dẫn
@@ -210,10 +208,9 @@ public class GameManager : MonoBehaviour
                 if (isLeftInput) RestartScene(); // D (Trái) -> Chơi lại
             }
 
-            inputHandled = true; // Đánh dấu đã xử lý để tránh bấm 1 lần nhảy 2 menu
+            inputHandled = true;
         }
 
-        // Reset trạng thái handle khi không còn bấm gì
         if (Mathf.Abs(hAxis) < 0.1f && Mathf.Abs(vAxis) < 0.1f && !Input.anyKey)
         {
             inputHandled = false;
@@ -337,6 +334,10 @@ public class GameManager : MonoBehaviour
         if (score >= continueCost)
         {
             SubtractScore(continueCost);
+
+            // SỬA LỖI TẠI ĐÂY: Reset IsGameEnded về false để game biết đã được hồi sinh
+            IsGameEnded = false;
+
             isAnsweringRiddle = false;
             Time.timeScale = 1f;
             if (losePanel) losePanel.SetActive(false);
@@ -506,9 +507,15 @@ public class GameManager : MonoBehaviour
     public void OnClickStart()
     {
         isGameStarted = true;
+        IsGameEnded = false; // Reset chắc chắn game chưa kết thúc
+        Time.timeScale = 1f; // Chắc chắn thời gian trôi bình thường
+
         if (startPanel) startPanel.SetActive(false);
         if (howToPlayPanel) howToPlayPanel.SetActive(false);
-        Cursor.lockState = CursorLockMode.Locked; Cursor.visible = false;
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
         StartCoroutine(ShowQuest("GAME BẮT ĐẦU! TÌM CAKE 1"));
     }
 
@@ -724,8 +731,6 @@ public class GameManager : MonoBehaviour
         // Nút C (JoystickButton2): Nhảy
         bool jump = Input.GetKeyDown(KeyCode.JoystickButton2) || Input.GetKeyDown(KeyCode.C);
 
-        // Truyền dữ liệu sang script CharacterControlHybrid (nếu script đó có hỗ trợ nhận input ngoài)
-        // Ở đây mình giả định bạn muốn can thiệp trực tiếp vào CharacterController
         if (moveForward)
         {
             Vector3 forward = cameraTransform.forward;
