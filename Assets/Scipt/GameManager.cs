@@ -175,6 +175,30 @@ public class GameManager : MonoBehaviour
         }
 
         if (Mathf.Abs(hAxis) < 0.1f && Mathf.Abs(vAxis) < 0.1f && !Input.anyKey) inputHandled = false;
+        // Nút D (Button 3) = Chọn Trái (How To Play / Restart)
+        bool selectLeft = Input.GetKeyDown(KeyCode.JoystickButton3);
+        // Nút C (Button 2) = Chọn Phải (Start / Continue)
+        bool selectRight = Input.GetKeyDown(KeyCode.JoystickButton2);
+
+        if (!inputHandled && (selectLeft || selectRight))
+        {
+            if (losePanel && losePanel.activeSelf)
+            {
+                if (selectLeft) RestartScene();
+                else if (selectRight) OnClickContinue();
+            }
+            else if (!isGameStarted)
+            {
+                if (howToPlayPanel && howToPlayPanel.activeSelf) { if (selectRight) OnClickStart(); }
+                else if (startPanel && startPanel.activeSelf)
+                {
+                    if (selectLeft) OnClickHowToPlay();
+                    else if (selectRight) OnClickStart();
+                }
+            }
+            inputHandled = true;
+        }
+        if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) < 0.1f && !Input.anyKey) inputHandled = false;
     }
 
 
