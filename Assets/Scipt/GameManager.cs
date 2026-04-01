@@ -18,6 +18,10 @@ public class GameManager : MonoBehaviour
     private CharacterController playerController;
     private CharacterControlHybrid playerScript;
 
+    [Header("VR Controller Settings")]
+    public bool useGyro = true;
+    private Quaternion baseRotation = Quaternion.identity;
+
     [Header("Game State")]
     public bool isGameStarted = false;
     public int score = 0;
@@ -25,29 +29,29 @@ public class GameManager : MonoBehaviour
     public int totalCakes = 6;
     public int nextCakeIndex = 1;
     public bool IsGameEnded { get; private set; } = false;
-    public bool cake6HintUnlocked = false; 
+    public bool cake6HintUnlocked = false;
 
     [Header("Lose & Smart Logic")]
     public float roofY = 164f;
     public float loseThresholdY = 147f;
     public float groundY = 0f;
     public CanvasGroup losePanelGroup;
-    public float groundLevelY_Old = 1.5f; 
+    public float groundLevelY_Old = 1.5f;
 
     [Header("Checkpoint & Continue")]
     private Vector3 lastCheckpoint;
-    public int continueCost = 10; 
-    public GameObject continueButton; 
+    public int continueCost = 10;
+    public GameObject continueButton;
 
     [Header("Win Celebration")]
     public GameObject fireworksObject;
     public string jumpAnimationParam = "WinJump";
-    public CanvasGroup winPanelGroup; 
+    public CanvasGroup winPanelGroup;
 
     [Header("Targets & Environment")]
     public Transform[] cakeTargets;
     public DayNight dayNight;
-    public GameObject elevatorDoors; 
+    public GameObject elevatorDoors;
 
     [Header("UI References")]
     public TextMeshProUGUI scoreText;
@@ -75,18 +79,21 @@ public class GameManager : MonoBehaviour
     public Transform uiOverlayParent;
     public AudioClip collectSound;
     public TextMeshProUGUI questNotificationText;
-    public float comboThreshold = 8f; 
+    public float comboThreshold = 8f;
 
- 
     private bool inputHandled = false;
     private bool isAnsweringRiddle = false;
     private float lastCollectTime = -99f;
     private Coroutine riddleTimerCoroutine;
     private Coroutine hintTimerCoroutine;
 
-    [Header("Assassin Car")]
+    [Header("Assassin Car Settings")]
     public float carSpeed = 50f;
-    public CarPathFollower attackingCar; 
+    public CarPathFollower attackingCar;
+    public GameObject assassinCar;
+    public float initialCarSpeed = 60f;
+    public float brakeIntensity = 5f;
+    public AudioClip brakeScreechSound;
 
     void Awake() { Instance = this; }
 
@@ -94,7 +101,14 @@ public class GameManager : MonoBehaviour
     {
         playerController = playerTransform.GetComponent<CharacterController>();
         playerScript = playerTransform.GetComponent<CharacterControlHybrid>();
-        lastCheckpoint = playerTransform.position;
+
+        // Kích hoạt cảm biến con quay hồi chuyển (Gyroscope) trên điện thoại
+        if (SystemInfo.supportsGyroscope)
+        {
+            Input.gyro.enabled = true;
+            lastCheckpoint = playerTransform.position;
+        } // ĐÃ SỬA: Đóng ngoặc bị thiếu ở đây
+
         lastCollectTime = Time.time - 10f;
         Time.timeScale = 1f;
 
@@ -105,14 +119,13 @@ public class GameManager : MonoBehaviour
         if (riddlePanel) riddlePanel.SetActive(false);
         if (pausePanel) pausePanel.SetActive(false);
         if (fireworksObject) fireworksObject.SetActive(false);
-        if (elevatorDoors) elevatorDoors.SetActive(true); 
+        if (elevatorDoors) elevatorDoors.SetActive(true);
         if (questNotificationText) questNotificationText.gameObject.SetActive(false);
 
         if (hintText) hintText.text = "Hint: Tìm chiếc bánh đầu tiên trên sân thượng.";
 
         UpdateUI();
 
-    
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
@@ -125,87 +138,91 @@ public class GameManager : MonoBehaviour
         if (Time.timeScale > 0)
         {
             totalGameTimer += Time.deltaTime;
+
+            // 1. Xử lý xoay camera bằng điện thoại (Tracker)
+            HandleVRRotation();
+
+            // 2. Xử lý di chuyển bằng nút bấm tay cầm
+            HandleVRMovement();
+
             CheckSmartLoseCondition();
             UpdateDistanceUI();
             UpdateTimerUI();
         }
 
-    
         if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.JoystickButton7)) TogglePause();
     }
 
     void HandleMenuInput()
     {
+        // 1. Lấy tín hiệu từ trục (Keyboard/Gamepad thường)
         float hAxis = Input.GetAxisRaw("Horizontal");
         float vAxis = Input.GetAxisRaw("Vertical");
 
-        bool leftK = Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow) || hAxis < -0.5f;
-        bool rightK = Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow) || hAxis > 0.5f;
-        bool downK = Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow) || vAxis < -0.5f;
+        // 2. Định nghĩa các điều kiện "Chọn Trái" và "Chọn Phải"
+        // Hướng TRÁI: Phím A, Mũi tên trái, Trục ngang âm, hoặc Nút D trên tay cầm VR
+        bool isLeftInput = Input.GetKeyDown(KeyCode.A) ||
+                           Input.GetKeyDown(KeyCode.LeftArrow) ||
+                           hAxis < -0.5f ||
+                           Input.GetKeyDown(KeyCode.JoystickButton3); // Nút D
 
-        if (!inputHandled && (leftK || rightK || downK))
+        // Hướng PHẢI: Phím D, Mũi tên phải, Trục ngang dương, hoặc Nút C trên tay cầm VR
+        bool isRightInput = Input.GetKeyDown(KeyCode.D) ||
+                            Input.GetKeyDown(KeyCode.RightArrow) ||
+                            hAxis > 0.5f ||
+                            Input.GetKeyDown(KeyCode.JoystickButton2); // Nút C
+
+        // Hướng XUỐNG (để đóng How To Play)
+        bool isDownInput = Input.GetKeyDown(KeyCode.S) ||
+                           Input.GetKeyDown(KeyCode.DownArrow) ||
+                           vAxis < -0.5f;
+
+        // 3. Xử lý Logic Menu
+        if (!inputHandled && (isLeftInput || isRightInput || isDownInput))
         {
- 
+            // TRƯỜNG HỢP: BẢNG THUA (Lose Panel)
             if (losePanel && losePanel.activeSelf)
             {
-                if (leftK) RestartScene();
-                else if (rightK) OnClickContinue();
+                if (isLeftInput) RestartScene();          // D (Trái) -> Chơi lại
+                else if (isRightInput) OnClickContinue(); // C (Phải) -> Tiếp tục
             }
-            // 2. Nếu chưa Start Game
+
+            // TRƯỜNG HỢP: CHƯA BẮT ĐẦU GAME
             else if (!isGameStarted)
             {
+                // Đang mở bảng hướng dẫn
                 if (howToPlayPanel && howToPlayPanel.activeSelf)
                 {
-                    if (rightK) OnClickStart();
-                    else if (downK) OnClickCloseHowToPlay(); 
+                    if (isRightInput) OnClickStart();           // C (Phải) -> Vào game luôn
+                    else if (isDownInput) OnClickCloseHowToPlay(); // Xuống -> Đóng bảng
                 }
+                // Đang ở Menu chính
                 else if (startPanel && startPanel.activeSelf)
                 {
-                    if (leftK) OnClickHowToPlay();
-                    else if (rightK) OnClickStart();
+                    if (isLeftInput) OnClickHowToPlay(); // D (Trái) -> Xem hướng dẫn
+                    else if (isRightInput) OnClickStart(); // C (Phải) -> Bắt đầu
                 }
             }
 
+            // TRƯỜNG HỢP: BẢNG THẮNG (Win Panel)
             else if (IsGameEnded && winPanel.activeSelf)
             {
-                if (leftK) RestartScene();
+                if (isLeftInput) RestartScene(); // D (Trái) -> Chơi lại
             }
 
-            inputHandled = true;
+            inputHandled = true; // Đánh dấu đã xử lý để tránh bấm 1 lần nhảy 2 menu
         }
 
-        if (Mathf.Abs(hAxis) < 0.1f && Mathf.Abs(vAxis) < 0.1f && !Input.anyKey) inputHandled = false;
-        // Nút D (Button 3) = Chọn Trái (How To Play / Restart)
-        bool selectLeft = Input.GetKeyDown(KeyCode.JoystickButton3);
-        // Nút C (Button 2) = Chọn Phải (Start / Continue)
-        bool selectRight = Input.GetKeyDown(KeyCode.JoystickButton2);
-
-        if (!inputHandled && (selectLeft || selectRight))
+        // Reset trạng thái handle khi không còn bấm gì
+        if (Mathf.Abs(hAxis) < 0.1f && Mathf.Abs(vAxis) < 0.1f && !Input.anyKey)
         {
-            if (losePanel && losePanel.activeSelf)
-            {
-                if (selectLeft) RestartScene();
-                else if (selectRight) OnClickContinue();
-            }
-            else if (!isGameStarted)
-            {
-                if (howToPlayPanel && howToPlayPanel.activeSelf) { if (selectRight) OnClickStart(); }
-                else if (startPanel && startPanel.activeSelf)
-                {
-                    if (selectLeft) OnClickHowToPlay();
-                    else if (selectRight) OnClickStart();
-                }
-            }
-            inputHandled = true;
+            inputHandled = false;
         }
-        if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) < 0.1f && !Input.anyKey) inputHandled = false;
     }
-
 
     public void CollectCake(int index, int scoreValue)
     {
         if (!CanCollectCake(index)) return;
-
 
         bool isCombo = (collectedCakes > 0 && (Time.time - lastCollectTime <= comboThreshold));
         int finalScore = isCombo ? scoreValue * 2 : scoreValue;
@@ -285,6 +302,7 @@ public class GameManager : MonoBehaviour
 
         questNotificationText.gameObject.SetActive(false);
     }
+
     IEnumerator RiddleEvent()
     {
         isAnsweringRiddle = true;
@@ -314,17 +332,15 @@ public class GameManager : MonoBehaviour
             LoseGame("HẾT THỜI GIAN GIẢI ĐỐ!");
     }
 
-
     public void OnClickContinue()
     {
         if (score >= continueCost)
         {
-            SubtractScore(continueCost); // Dùng hàm helper mới
+            SubtractScore(continueCost);
             isAnsweringRiddle = false;
             Time.timeScale = 1f;
             if (losePanel) losePanel.SetActive(false);
 
-            // Hồi sinh tại Checkpoint
             if (playerController) playerController.enabled = false;
             playerTransform.position = lastCheckpoint + Vector3.up * 2f;
             if (playerController) playerController.enabled = true;
@@ -342,7 +358,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // --- HIỆU ỨNG THẮNG/THUA (RUNG CAMERA & FADE UI) ---
     public void LoseGame(string reason = "BẠN ĐÃ THẤT BẠI!")
     {
         if (IsGameEnded) return;
@@ -354,21 +369,16 @@ public class GameManager : MonoBehaviour
     {
         IsGameEnded = true;
 
-        // Rung camera ngay
         StartCoroutine(CameraShake(0.4f, 0.3f));
 
-        // Set text ngay
         if (loseReasonText)
             loseReasonText.text = "LÍ DO: " + reason + "\nScore: " + score;
 
-        // Hiện nút continue nếu đủ điểm
         if (continueButton)
             continueButton.SetActive(score >= continueCost);
 
-        // Delay 1s cho hiệu ứng rơi
         yield return new WaitForSeconds(1.0f);
 
-        // Hiện panel + fade
         if (losePanel) losePanel.SetActive(true);
 
         float t = 0;
@@ -379,7 +389,6 @@ public class GameManager : MonoBehaviour
             yield return null;
         }
 
-        // Pause game ở cuối
         Time.timeScale = 0;
 
         Cursor.lockState = CursorLockMode.None;
@@ -407,7 +416,7 @@ public class GameManager : MonoBehaviour
         }
 
         if (winPanel) winPanel.SetActive(true);
-        StartCoroutine(FadeInWinUI()); 
+        StartCoroutine(FadeInWinUI());
         Cursor.lockState = CursorLockMode.None; Cursor.visible = true;
     }
 
@@ -582,7 +591,9 @@ public class GameManager : MonoBehaviour
             StartCoroutine(RiddleResultRoutine(false));
         }
     }
+
     public bool CanCollectCake(int i) => isGameStarted && !IsGameEnded && i == nextCakeIndex;
+
     public void ShowWrongOrderHint(int index)
     {
         if (hintText)
@@ -592,13 +603,19 @@ public class GameManager : MonoBehaviour
             if (hintTimerCoroutine != null) StopCoroutine(hintTimerCoroutine);
             hintTimerCoroutine = StartCoroutine(HideHintAfterDelay(8f));
         }
+        // Nút D chọn đáp án bên trái
+        if (Input.GetKeyDown(KeyCode.JoystickButton3) || Input.GetKeyDown(KeyCode.A))
+        {
+            if (riddleTimerCoroutine != null) StopCoroutine(riddleTimerCoroutine);
+            StartCoroutine(RiddleResultRoutine(true));
+        }
+        // Nút C chọn đáp án bên phải
+        else if (Input.GetKeyDown(KeyCode.JoystickButton2) || Input.GetKeyDown(KeyCode.D))
+        {
+            if (riddleTimerCoroutine != null) StopCoroutine(riddleTimerCoroutine);
+            StartCoroutine(RiddleResultRoutine(false));
+        }
     }
-
-    [Header("Assassin Car Settings")]
-    public GameObject assassinCar;
-    public float initialCarSpeed = 60f;
-    public float brakeIntensity = 5f;  
-    public AudioClip brakeScreechSound; 
 
     IEnumerator SummonAssassinCar()
     {
@@ -611,7 +628,7 @@ public class GameManager : MonoBehaviour
             assassinCar.SetActive(true);
 
             Vector3 spawnPos = playerTransform.position - playerTransform.forward * 40f;
-            spawnPos.y = 0.5f; 
+            spawnPos.y = 0.5f;
             assassinCar.transform.position = spawnPos;
             assassinCar.transform.LookAt(new Vector3(playerTransform.position.x, 0.5f, playerTransform.position.z));
 
@@ -649,7 +666,7 @@ public class GameManager : MonoBehaviour
             assassinCar.SetActive(false);
         }
     }
-    // Dán hàm này vào cuối GameManager.cs
+
     public void ImmediateLoseGame(string reason = "BẠN ĐÃ THẤT BẠI!")
     {
         if (IsGameEnded) return;
@@ -681,4 +698,45 @@ public class GameManager : MonoBehaviour
         Cursor.visible = true;
     }
 
+    // Hàm xử lý xoay hướng nhìn (Lên/Xuống/Trái/Phải) bằng Gyro điện thoại
+    void HandleVRRotation()
+    {
+        if (!useGyro || !SystemInfo.supportsGyroscope) return;
+
+        // Lấy attitude (hướng) từ Gyroscope
+        Quaternion gyroAttitude = Input.gyro.attitude;
+
+        // Chuyển đổi hệ tọa độ từ điện thoại sang Unity (thường là đảo ngược trục z và w)
+        Quaternion rot = new Quaternion(gyroAttitude.x, gyroAttitude.y, -gyroAttitude.z, -gyroAttitude.w);
+
+        // Bù trừ góc xoay mặc định (thường điện thoại nằm ngang trong kính VR)
+        cameraTransform.localRotation = Quaternion.Euler(90f, 0f, 0f) * rot;
+    }
+
+    // Hàm xử lý Di chuyển (Nút D) và Nhảy (Nút C)
+    void HandleVRMovement()
+    {
+        if (playerScript == null) return;
+
+        // Nút D (JoystickButton3): Đi tới
+        bool moveForward = Input.GetKey(KeyCode.JoystickButton3) || Input.GetKey(KeyCode.D);
+
+        // Nút C (JoystickButton2): Nhảy
+        bool jump = Input.GetKeyDown(KeyCode.JoystickButton2) || Input.GetKeyDown(KeyCode.C);
+
+        // Truyền dữ liệu sang script CharacterControlHybrid (nếu script đó có hỗ trợ nhận input ngoài)
+        // Ở đây mình giả định bạn muốn can thiệp trực tiếp vào CharacterController
+        if (moveForward)
+        {
+            Vector3 forward = cameraTransform.forward;
+            forward.y = 0; // Giữ người chơi đi trên mặt đất, không bay lên trời
+            playerController.SimpleMove(forward.normalized * 6f); // 6f là tốc độ moveSpeed
+        }
+
+        if (jump && playerController.isGrounded)
+        {
+            // Gửi lệnh nhảy tới playerScript nếu nó có hàm Jump()
+            playerScript.SendMessage("Jump", SendMessageOptions.DontRequireReceiver);
+        }
+    }
 }
