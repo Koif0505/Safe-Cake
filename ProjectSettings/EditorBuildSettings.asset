@@ -9,5 +9,6 @@ EditorBuildSettings:
     path: Assets/Scenes/ChallengeMode.unity
     guid: 169143ca1e7738441b5b42728342e16d
   m_configObjects:
+    Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 66175ce33cc2bda40b560e385292b718, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 75c47e9d9520a2e438a5e5295a44c748, type: 2}
     xr.sdk.mock-hmd.settings: {fileID: 11400000, guid: 06db841bfb244444d988687c7ee4d99b, type: 2}

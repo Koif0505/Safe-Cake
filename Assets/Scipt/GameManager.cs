@@ -85,8 +85,8 @@ public class GameManager : MonoBehaviour
     private Coroutine hintTimerCoroutine;
 
     [Header("Assassin Car")]
-    public float carSpeed = 50f;   
-
+    public float carSpeed = 50f;
+    public CarPathFollower attackingCar; 
 
     void Awake() { Instance = this; }
 
@@ -308,6 +308,8 @@ public class GameManager : MonoBehaviour
             Time.timeScale = 1f;
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+            if (attackingCar != null) attackingCar.StopAndDestroy();
+
             UpdateUI();
         }
         else
@@ -459,7 +461,7 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
         StartCoroutine(SummonAssassinCar());
         Cursor.visible = false; Cursor.lockState = CursorLockMode.Locked;
-
+        if (attackingCar != null) attackingCar.StartCarAttack();
         if (hintText)
         {
             hintText.text = "Hint: Bánh ở trên cây, hàng cây có ghế đá";
@@ -576,8 +578,8 @@ public class GameManager : MonoBehaviour
 
     IEnumerator SummonAssassinCar()
     {
-        // 1. Đợi 5 giây sau khi giải đố xong
-        yield return new WaitForSeconds(5f);
+        // 1. Đợi 3 giây sau khi giải đố xong
+        yield return new WaitForSeconds(3f);
 
         // 2. Kiểm tra nếu Nhi vẫn còn ở dưới đường (Y < 3m)
         if (playerTransform.position.y < 3f)
@@ -622,5 +624,36 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(3f);
             assassinCar.SetActive(false);
         }
+    }
+    // Dán hàm này vào cuối GameManager.cs
+    public void ImmediateLoseGame(string reason = "BẠN ĐÃ THẤT BẠI!")
+    {
+        if (IsGameEnded) return;
+        IsGameEnded = true;
+
+        // Rung camera cho có cảm giác mạnh (giữ rung từ script cũ cho xịn)
+        StartCoroutine(CameraShake(0.3f, 0.4f));
+
+        if (loseReasonText) loseReasonText.text = "LÍ DO: " + reason + "\nScore: " + score;
+
+        // Hiển thị nút hồi sinh nếu đủ điểm (từ script cũ)
+        if (continueButton) continueButton.SetActive(score >= continueCost);
+
+        // Dừng game và hiện bảng Lose ngay lập tức không delay
+        if (losePanel) losePanel.SetActive(true);
+
+        // Fade in bảng Lose mượt từ script cũ
+        float t = 0;
+        while (t < 1f)
+        {
+            t += Time.unscaledDeltaTime;
+            if (losePanelGroup) losePanelGroup.alpha = t;
+        }
+
+        Time.timeScale = 0; // Dừng game
+
+        // VR cursor management
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 }
