@@ -25,29 +25,29 @@ public class GameManager : MonoBehaviour
     public int totalCakes = 6;
     public int nextCakeIndex = 1;
     public bool IsGameEnded { get; private set; } = false;
-    public bool cake6HintUnlocked = false; // Từ script cũ: Để kiểm tra đã qua Riddle chưa
+    public bool cake6HintUnlocked = false; 
 
     [Header("Lose & Smart Logic")]
     public float roofY = 164f;
     public float loseThresholdY = 147f;
     public float groundY = 0f;
     public CanvasGroup losePanelGroup;
-    public float groundLevelY_Old = 1.5f; // Dự phòng từ script cũ
+    public float groundLevelY_Old = 1.5f; 
 
     [Header("Checkpoint & Continue")]
     private Vector3 lastCheckpoint;
-    public int continueCost = 10; // Phí hồi sinh từ script cũ
-    public GameObject continueButton; // Nút hồi sinh từ script cũ
+    public int continueCost = 10; 
+    public GameObject continueButton; 
 
     [Header("Win Celebration")]
     public GameObject fireworksObject;
     public string jumpAnimationParam = "WinJump";
-    public CanvasGroup winPanelGroup; // Để làm hiệu ứng Fade từ script cũ
+    public CanvasGroup winPanelGroup; 
 
     [Header("Targets & Environment")]
     public Transform[] cakeTargets;
     public DayNight dayNight;
-    public GameObject elevatorDoors; // Quản lý cửa từ script cũ
+    public GameObject elevatorDoors; 
 
     [Header("UI References")]
     public TextMeshProUGUI scoreText;
@@ -75,14 +75,18 @@ public class GameManager : MonoBehaviour
     public Transform uiOverlayParent;
     public AudioClip collectSound;
     public TextMeshProUGUI questNotificationText;
-    public float comboThreshold = 8f; // Ngưỡng combo từ script cũ
+    public float comboThreshold = 8f; 
 
-    // Biến nội bộ quản lý Coroutine và Input
+ 
     private bool inputHandled = false;
     private bool isAnsweringRiddle = false;
     private float lastCollectTime = -99f;
     private Coroutine riddleTimerCoroutine;
     private Coroutine hintTimerCoroutine;
+
+    [Header("Assassin Car")]
+    public float carSpeed = 50f;   
+
 
     void Awake() { Instance = this; }
 
@@ -94,7 +98,6 @@ public class GameManager : MonoBehaviour
         lastCollectTime = Time.time - 10f;
         Time.timeScale = 1f;
 
-        // Reset UI và Panels (Kỹ càng từ cả 2 script)
         if (startPanel) startPanel.SetActive(true);
         if (howToPlayPanel) howToPlayPanel.SetActive(false);
         if (winPanel) winPanel.SetActive(false);
@@ -102,14 +105,14 @@ public class GameManager : MonoBehaviour
         if (riddlePanel) riddlePanel.SetActive(false);
         if (pausePanel) pausePanel.SetActive(false);
         if (fireworksObject) fireworksObject.SetActive(false);
-        if (elevatorDoors) elevatorDoors.SetActive(true); // Giữ cửa đóng lúc đầu
+        if (elevatorDoors) elevatorDoors.SetActive(true); 
         if (questNotificationText) questNotificationText.gameObject.SetActive(false);
 
         if (hintText) hintText.text = "Hint: Tìm chiếc bánh đầu tiên trên sân thượng.";
 
         UpdateUI();
 
-        // Trạng thái chuột ban đầu (VR Friendly)
+    
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
@@ -127,11 +130,10 @@ public class GameManager : MonoBehaviour
             UpdateTimerUI();
         }
 
-        // Pause Game
+    
         if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.JoystickButton7)) TogglePause();
     }
 
-    // --- HÀM XỬ LÝ MENU GỘP CẢ PHÍM TẮT VÀ JOYSTICK (CỰC KỸ) ---
     void HandleMenuInput()
     {
         float hAxis = Input.GetAxisRaw("Horizontal");
@@ -143,7 +145,7 @@ public class GameManager : MonoBehaviour
 
         if (!inputHandled && (leftK || rightK || downK))
         {
-            // 1. Nếu đang ở Lose Panel
+ 
             if (losePanel && losePanel.activeSelf)
             {
                 if (leftK) RestartScene();
@@ -155,7 +157,7 @@ public class GameManager : MonoBehaviour
                 if (howToPlayPanel && howToPlayPanel.activeSelf)
                 {
                     if (rightK) OnClickStart();
-                    else if (downK) OnClickCloseHowToPlay(); // Phím tắt thoát hướng dẫn từ script cũ
+                    else if (downK) OnClickCloseHowToPlay(); 
                 }
                 else if (startPanel && startPanel.activeSelf)
                 {
@@ -163,7 +165,7 @@ public class GameManager : MonoBehaviour
                     else if (rightK) OnClickStart();
                 }
             }
-            // 3. Nếu đang ở Win Panel
+
             else if (IsGameEnded && winPanel.activeSelf)
             {
                 if (leftK) RestartScene();
@@ -175,12 +177,12 @@ public class GameManager : MonoBehaviour
         if (Mathf.Abs(hAxis) < 0.1f && Mathf.Abs(vAxis) < 0.1f && !Input.anyKey) inputHandled = false;
     }
 
-    // --- LOGIC ĂN BÁNH (KẾT HỢP COMBO VÀ EVENT) ---
+
     public void CollectCake(int index, int scoreValue)
     {
         if (!CanCollectCake(index)) return;
 
-        // Tính Combo (Dùng Threshold từ script cũ)
+
         bool isCombo = (collectedCakes > 0 && (Time.time - lastCollectTime <= comboThreshold));
         int finalScore = isCombo ? scoreValue * 2 : scoreValue;
 
@@ -195,7 +197,6 @@ public class GameManager : MonoBehaviour
 
         nextCakeIndex++;
 
-        // Kích hoạt hiệu ứng đặc biệt cho bánh tiếp theo
         if (nextCakeIndex <= totalCakes)
         {
             Transform next = cakeTargets[nextCakeIndex - 1];
@@ -211,56 +212,85 @@ public class GameManager : MonoBehaviour
         }
 
         UpdateUI();
-        UpdateQuestAndHints();
+        TriggerQuestEvents();
 
         if (collectedCakes >= totalCakes) StartCoroutine(WinSequence());
     }
 
-    void UpdateQuestAndHints()
+    void TriggerQuestEvents()
     {
-        string m = "";
-        string h = "";
+        string questMsg = "";
 
         switch (collectedCakes)
         {
             case 1:
-                m = "NHẢY QUA TẤM VÁN ĂN CAKE 2";
-                h = "Hint: Nhảy ra tấm ván để ăn Bánh 2";
+                questMsg = "Hint: Nhảy ra tấm ván để ăn Bánh 2";
                 break;
+
             case 2:
-                m = "XUỐNG CẦU TÌM CAKE 3!";
-                h = "Hint: Nhảy xuống mái dưới và tìm Cake";
+                questMsg = "Hint: Nhảy xuống mái dưới và tìm Cake";
                 break;
+
             case 3:
-                m = "TÌM BÁNH 4 PHÍA TRƯỚC!";
-                h = "Hint: Bánh 4 ở trên những toà nhà phía trước.";
+                questMsg = "Hint: Bánh 4 trên những toà nhà phía trước.";
                 break;
+
             case 4:
-                m = "XUỐNG QUỐC LỘ TÌM BÁNH 5!";
-                h = "Hint: Nhảy xuống quốc lộ phía bên trái để tìm Bánh";
-                if (dayNight) dayNight.SetNightMode();
+                questMsg = "Hint: Nhảy xuống quốc lộ phía bên trái để tìm Bánh";
+                if (dayNight != null)
+                    dayNight.SetNightMode();
                 break;
+
             case 5:
-                isAnsweringRiddle = true;
-                Time.timeScale = 0;
-                if (riddlePanel) riddlePanel.SetActive(true);
-                Cursor.visible = true; Cursor.lockState = CursorLockMode.None;
-                if (riddleTimerCoroutine != null) StopCoroutine(riddleTimerCoroutine);
-                riddleTimerCoroutine = StartCoroutine(RiddleTimerRoutine(15f)); // Tăng lên 15s như script cũ
+                StartCoroutine(RiddleEvent());
                 break;
         }
 
-        if (questNotificationText && m != "") StartCoroutine(ShowQuest(m));
-
-        if (hintText && h != "")
-        {
-            hintText.text = h;
-            if (hintTimerCoroutine != null) StopCoroutine(hintTimerCoroutine);
-            hintTimerCoroutine = StartCoroutine(HideHintAfterDelay(8f));
-        }
+        if (!string.IsNullOrEmpty(questMsg))
+            StartCoroutine(ShowQuestNotification(questMsg));
     }
 
-    // --- HỆ THỐNG HỒI SINH (TỪ SCRIPT CŨ) ---
+    IEnumerator ShowQuestNotification(string message)
+    {
+        if (questNotificationText == null) yield break;
+
+        questNotificationText.text = message;
+        questNotificationText.gameObject.SetActive(true);
+
+        yield return new WaitForSeconds(2.5f);
+
+        questNotificationText.gameObject.SetActive(false);
+    }
+    IEnumerator RiddleEvent()
+    {
+        isAnsweringRiddle = true;
+        Time.timeScale = 0;
+
+        if (riddlePanel) riddlePanel.SetActive(true);
+
+        if (leftAnswerButton) leftAnswerButton.image.color = Color.white;
+        if (rightAnswerButton) rightAnswerButton.image.color = Color.white;
+
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+
+        float t = 10f;
+
+        while (t > 0 && isAnsweringRiddle)
+        {
+            t -= Time.unscaledDeltaTime;
+
+            if (riddleTimerText)
+                riddleTimerText.text = "GIẢI ĐỐ: " + Mathf.Ceil(t) + "s";
+
+            yield return null;
+        }
+
+        if (isAnsweringRiddle && !cake6HintUnlocked)
+            LoseGame("HẾT THỜI GIAN GIẢI ĐỐ!");
+    }
+
+
     public void OnClickContinue()
     {
         if (score >= continueCost)
@@ -340,7 +370,6 @@ public class GameManager : MonoBehaviour
         if (fireworksObject) fireworksObject.SetActive(true);
         if (winScoreText) winScoreText.text = "Final Score: " + score;
 
-        // Nhảy ăn mừng
         Animator anim = playerTransform.GetComponent<Animator>();
         float timer = 3f;
         while (timer > 0)
@@ -352,11 +381,10 @@ public class GameManager : MonoBehaviour
         }
 
         if (winPanel) winPanel.SetActive(true);
-        StartCoroutine(FadeInWinUI()); // Fade mượt từ script cũ
+        StartCoroutine(FadeInWinUI()); 
         Cursor.lockState = CursorLockMode.None; Cursor.visible = true;
     }
 
-    // --- CÁC HÀM HỖ TRỢ (HELPER METHODS) ---
     public void SubtractScore(int amount)
     {
         score = Mathf.Max(0, score - amount);
@@ -429,6 +457,7 @@ public class GameManager : MonoBehaviour
         riddlePanel.SetActive(false);
         isAnsweringRiddle = false;
         Time.timeScale = 1f;
+        StartCoroutine(SummonAssassinCar());
         Cursor.visible = false; Cursor.lockState = CursorLockMode.Locked;
 
         if (hintText)
@@ -439,7 +468,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Các hàm xử lý Menu cơ bản
     public void OnClickStart()
     {
         isGameStarted = true;
@@ -478,15 +506,12 @@ public class GameManager : MonoBehaviour
         if (IsGameEnded || !playerController.isGrounded) return;
         float pY = playerTransform.position.y;
 
-        // Kết hợp logic Y chi tiết của script mới
         if (collectedCakes < 2 && pY < roofY - 2f) LoseGame("RƠI KHỎI TẦNG THƯỢNG!");
         else if (collectedCakes == 2 && pY < loseThresholdY) LoseGame("RƠI XUỐNG DƯỚI CẦU!");
         else if (collectedCakes == 3 && pY < groundY + 5f) LoseGame("CHẠM XUỐNG MẶT ĐẤT!");
-        // Logic rơi khỏi thành phố từ script cũ
         else if (collectedCakes >= 4 && pY < -15f) LoseGame("RƠI KHỎI THÀNH PHỐ!");
     }
 
-    // UI & Logic nội bộ
     void UpdateUI() { if (scoreText) scoreText.text = "Score: " + score; if (cakeText) cakeText.text = "Cakes: " + collectedCakes + "/" + totalCakes; }
     void UpdateTimerUI() { if (timerText) timerText.text = "Time: " + totalGameTimer.ToString("F1") + "s"; }
     void UpdateDistanceUI() { Transform t = GetTarget(); if (t && distanceText) distanceText.text = "Next: " + Vector3.Distance(playerTransform.position, t.position).ToString("F1") + "m"; }
@@ -532,16 +557,70 @@ public class GameManager : MonoBehaviour
         }
     }
     public bool CanCollectCake(int i) => isGameStarted && !IsGameEnded && i == nextCakeIndex;
-    // Thêm hàm này vào cuối GameManager.cs để sửa lỗi CS1061
     public void ShowWrongOrderHint(int index)
     {
         if (hintText)
         {
             hintText.text = "Hãy ăn Cake " + nextCakeIndex + " trước!";
 
-            // Cho hint này cũng biến mất sau 8s cho đồng bộ
             if (hintTimerCoroutine != null) StopCoroutine(hintTimerCoroutine);
             hintTimerCoroutine = StartCoroutine(HideHintAfterDelay(8f));
+        }
+    }
+
+    [Header("Assassin Car Settings")]
+    public GameObject assassinCar;
+    public float initialCarSpeed = 60f;
+    public float brakeIntensity = 5f;  
+    public AudioClip brakeScreechSound; 
+
+    IEnumerator SummonAssassinCar()
+    {
+        // 1. Đợi 5 giây sau khi giải đố xong
+        yield return new WaitForSeconds(5f);
+
+        // 2. Kiểm tra nếu Nhi vẫn còn ở dưới đường (Y < 3m)
+        if (playerTransform.position.y < 3f)
+        {
+            assassinCar.SetActive(true);
+
+            Vector3 spawnPos = playerTransform.position - playerTransform.forward * 40f;
+            spawnPos.y = 0.5f; 
+            assassinCar.transform.position = spawnPos;
+            assassinCar.transform.LookAt(new Vector3(playerTransform.position.x, 0.5f, playerTransform.position.z));
+
+            float currentSpeed = initialCarSpeed;
+            bool startBraking = false;
+
+            while (currentSpeed > 0.1f)
+            {
+                assassinCar.transform.Translate(Vector3.forward * currentSpeed * Time.deltaTime);
+
+                float distanceToPlayer = Vector3.Distance(
+                    new Vector3(assassinCar.transform.position.x, 0, assassinCar.transform.position.z),
+                    new Vector3(playerTransform.position.x, 0, playerTransform.position.z)
+                );
+
+                Vector3 dirToPlayer = playerTransform.position - assassinCar.transform.position;
+                bool hasPassedPlayer = Vector3.Dot(assassinCar.transform.forward, dirToPlayer) < 0;
+
+                if ((distanceToPlayer < 5f || hasPassedPlayer) && !startBraking)
+                {
+                    startBraking = true;
+                    if (brakeScreechSound) AudioSource.PlayClipAtPoint(brakeScreechSound, assassinCar.transform.position);
+                }
+
+                if (startBraking)
+                {
+                    currentSpeed = Mathf.Lerp(currentSpeed, 0, Time.deltaTime * brakeIntensity);
+                }
+
+                yield return null;
+            }
+            currentSpeed = 0;
+
+            yield return new WaitForSeconds(3f);
+            assassinCar.SetActive(false);
         }
     }
 }

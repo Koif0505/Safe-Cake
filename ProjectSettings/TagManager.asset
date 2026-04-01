@@ -12,6 +12,7 @@ TagManager:
   - CinemachineTarget
   - IaCar
   - Danger
+  - Car
   layers:
   - Default
   - TransparentFX
