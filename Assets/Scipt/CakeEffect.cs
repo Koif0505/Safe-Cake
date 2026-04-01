@@ -24,7 +24,6 @@ public class CakeEffect : MonoBehaviour
 
     IEnumerator EffectRoutine(float duration, float heightMul, bool useGlow)
     {
-        // Logic phát sáng
         if (useGlow && mat != null)
         {
             mat.EnableKeyword("_EMISSION");
@@ -46,7 +45,6 @@ public class CakeEffect : MonoBehaviour
             yield return null;
         }
 
-        // Reset về vị trí cũ
         transform.position = originalPos;
         if (mat != null) mat.SetColor("_EmissionColor", Color.black);
     }
