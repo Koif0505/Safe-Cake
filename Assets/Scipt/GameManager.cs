@@ -525,7 +525,7 @@ public class GameManager : MonoBehaviour
         {
             hintText.text = "Hint: Bánh ở trên cây, hàng cây có ghế đá";
             if (hintTimerCoroutine != null) StopCoroutine(hintTimerCoroutine);
-            hintTimerCoroutine = StartCoroutine(HideHintAfterDelay(8f));
+            hintTimerCoroutine = StartCoroutine(HideHintAfterDelay(10f));
         }
     }
 
@@ -633,7 +633,7 @@ public class GameManager : MonoBehaviour
             hintText.text = "Hãy ăn Cake " + nextCakeIndex + " trước!";
 
             if (hintTimerCoroutine != null) StopCoroutine(hintTimerCoroutine);
-            hintTimerCoroutine = StartCoroutine(HideHintAfterDelay(8f));
+            hintTimerCoroutine = StartCoroutine(HideHintAfterDelay(10f));
         }
 
         if (LeftActionDown())
