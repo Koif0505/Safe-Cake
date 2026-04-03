@@ -8,7 +8,7 @@ public class CarPathFollower : MonoBehaviour
     public AudioSource crashSoundSource;
 
     private List<Transform> waypoints = new List<Transform>();
-    private int currentPointIndex = 0;
+    // Đã xóa dòng private int currentPointIndex = 0; ở đây để hết Warning
     private int stage = 0; // 0: Idle, 1: P1->P2, 2: P2->P3
     private float moveTimer = 0f;
     private bool isMoving = false;
