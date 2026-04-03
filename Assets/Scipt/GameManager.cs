@@ -730,9 +730,21 @@ public class GameManager : MonoBehaviour
     if (!SystemInfo.supportsGyroscope) return;
 
     Quaternion gyroAttitude = Input.gyro.attitude;
-    Quaternion rot = new Quaternion(gyroAttitude.x, gyroAttitude.y, -gyroAttitude.z, -gyroAttitude.w);
 
-    cameraTransform.localRotation = Quaternion.Euler(90f, 0f, 0f) * rot;
+    Quaternion rot = new Quaternion(
+        gyroAttitude.x,
+        gyroAttitude.y,
+        -gyroAttitude.z,
+        -gyroAttitude.w
+    );
+
+    Quaternion targetRotation = Quaternion.Euler(90f, 0f, 0f) * rot;
+
+    cameraTransform.localRotation = Quaternion.Slerp(
+        cameraTransform.localRotation,
+        targetRotation,
+        Time.deltaTime * 8f
+    );
 #endif
     }
 
