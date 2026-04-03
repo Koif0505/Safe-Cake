@@ -102,9 +102,8 @@ public class GameManager : MonoBehaviour
         playerController = playerTransform.GetComponent<CharacterController>();
         playerScript = playerTransform.GetComponent<CharacterControlHybrid>();
 
-        if (SystemInfo.supportsGyroscope)
+        if (playerTransform != null)
         {
-            Input.gyro.enabled = true;
             lastCheckpoint = playerTransform.position;
         }
 
@@ -123,7 +122,8 @@ public class GameManager : MonoBehaviour
         if (questNotificationText) questNotificationText.gameObject.SetActive(false);
 
         if (hintText) hintText.text = "Hint: Tìm chiếc bánh đầu tiên trên sân thượng.";
-
+        if (mainVRCamera) mainVRCamera.gameObject.SetActive(true);
+        if (winCamera) winCamera.gameObject.SetActive(false);
         UpdateUI();
 
         Cursor.lockState = CursorLockMode.None;
@@ -139,7 +139,7 @@ public class GameManager : MonoBehaviour
         {
             totalGameTimer += Time.deltaTime;
 
-            HandleVRRotation();
+            // HandleVRRotation();
 
             CheckSmartLoseCondition();
             UpdateDistanceUI();
@@ -722,31 +722,6 @@ public class GameManager : MonoBehaviour
         Cursor.visible = true;
     }
 
-    void HandleVRRotation()
-    {
-        if (!useGyro) return;
-
-#if UNITY_ANDROID && !UNITY_EDITOR
-    if (!SystemInfo.supportsGyroscope) return;
-
-    Quaternion gyroAttitude = Input.gyro.attitude;
-
-    Quaternion rot = new Quaternion(
-        gyroAttitude.x,
-        gyroAttitude.y,
-        -gyroAttitude.z,
-        -gyroAttitude.w
-    );
-
-    Quaternion targetRotation = Quaternion.Euler(90f, 0f, 0f) * rot;
-
-    cameraTransform.localRotation = Quaternion.Slerp(
-        cameraTransform.localRotation,
-        targetRotation,
-        Time.deltaTime * 8f
-    );
-#endif
-    }
 
     void HandleVRMovement()
     {
