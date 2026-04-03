@@ -84,8 +84,11 @@ public class GameManager : MonoBehaviour
     private bool inputHandled = false;
     private bool isAnsweringRiddle = false;
     private float lastCollectTime = -99f;
+
+    // BIẾN QUẢN LÝ ĐỒNG HỒ ĐẾM NGƯỢC CỦA HINT
     private Coroutine riddleTimerCoroutine;
     private Coroutine hintTimerCoroutine;
+    private Coroutine questTimerCoroutine;
 
     [Header("Assassin Car Settings")]
     public float carSpeed = 50f;
@@ -139,8 +142,6 @@ public class GameManager : MonoBehaviour
         {
             totalGameTimer += Time.deltaTime;
 
-            // HandleVRRotation();
-
             CheckSmartLoseCondition();
             UpdateDistanceUI();
             UpdateTimerUI();
@@ -153,7 +154,6 @@ public class GameManager : MonoBehaviour
     // INPUT ABSTRACTION
     // =========================
 
-    // B <-> LeftArrow
     bool LeftActionDown()
     {
         return Input.GetKeyDown(KeyCode.LeftArrow) ||
@@ -161,7 +161,6 @@ public class GameManager : MonoBehaviour
                Input.GetKeyDown(KeyCode.JoystickButton1);
     }
 
-    // A <-> RightArrow
     bool RightActionDown()
     {
         return Input.GetKeyDown(KeyCode.RightArrow) ||
@@ -169,7 +168,6 @@ public class GameManager : MonoBehaviour
                Input.GetKeyDown(KeyCode.JoystickButton0);
     }
 
-    // D <-> UpArrow
     bool ForwardAction()
     {
         return Input.GetKey(KeyCode.UpArrow) ||
@@ -184,7 +182,6 @@ public class GameManager : MonoBehaviour
                Input.GetKeyDown(KeyCode.JoystickButton3);
     }
 
-    // C <-> Space
     bool JumpActionDown()
     {
         return Input.GetKeyDown(KeyCode.Space) ||
@@ -247,6 +244,14 @@ public class GameManager : MonoBehaviour
     {
         if (!CanCollectCake(index)) return;
 
+        // 1. TẮT NGAY LẬP TỨC CÁC HINT CŨ KHI VỪA ĂN ĐƯỢC BÁNH
+        if (hintTimerCoroutine != null) StopCoroutine(hintTimerCoroutine);
+        if (hintText) hintText.text = "";
+
+        if (questTimerCoroutine != null) StopCoroutine(questTimerCoroutine);
+        if (questNotificationText) questNotificationText.gameObject.SetActive(false);
+
+        // 2. TÍNH ĐIỂM
         bool isCombo = (collectedCakes > 0 && (Time.time - lastCollectTime <= comboThreshold));
         int finalScore = isCombo ? scoreValue * 2 : scoreValue;
 
@@ -276,6 +281,8 @@ public class GameManager : MonoBehaviour
         }
 
         UpdateUI();
+
+        // 3. GỌI HINT MỚI
         TriggerQuestEvents();
 
         if (collectedCakes >= totalCakes) StartCoroutine(WinSequence());
@@ -300,7 +307,7 @@ public class GameManager : MonoBehaviour
                 break;
 
             case 4:
-                questMsg = "Hint: Nhảy xuống quốc lộ phía bên trái để tìm Bánh";
+                questMsg = "Hint: Nhảy xuống quốc lộ phía bên TRÁI để tìm Bánh";
                 if (dayNight != null)
                     dayNight.SetNightMode();
                 break;
@@ -310,8 +317,11 @@ public class GameManager : MonoBehaviour
                 break;
         }
 
+        // Bật Hint mới trong 10 giây
         if (!string.IsNullOrEmpty(questMsg))
-            StartCoroutine(ShowQuestNotification(questMsg));
+        {
+            questTimerCoroutine = StartCoroutine(ShowQuestNotification(questMsg));
+        }
     }
 
     IEnumerator ShowQuestNotification(string message)
@@ -321,7 +331,8 @@ public class GameManager : MonoBehaviour
         questNotificationText.text = message;
         questNotificationText.gameObject.SetActive(true);
 
-        yield return new WaitForSeconds(2.5f);
+        // HIỆN 10 GIÂY
+        yield return new WaitForSeconds(10f);
 
         questNotificationText.gameObject.SetActive(false);
     }
@@ -541,7 +552,9 @@ public class GameManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        StartCoroutine(ShowQuest("GAME BẮT ĐẦU! TÌM CAKE 1"));
+        // Bật Hint đầu tiên 10 giây
+        if (questTimerCoroutine != null) StopCoroutine(questTimerCoroutine);
+        questTimerCoroutine = StartCoroutine(ShowQuestNotification("GAME BẮT ĐẦU! TÌM CAKE 1"));
     }
 
     public void OnClickHowToPlay()
@@ -596,17 +609,6 @@ public class GameManager : MonoBehaviour
                 txt.text = (value >= 0 ? "+" : "") + value + (isCombo ? " COMBO!" : "");
                 txt.color = isCombo ? Color.yellow : (value >= 0 ? Color.white : Color.red);
             }
-        }
-    }
-
-    IEnumerator ShowQuest(string m)
-    {
-        if (questNotificationText)
-        {
-            questNotificationText.text = m;
-            questNotificationText.gameObject.SetActive(true);
-            yield return new WaitForSeconds(2.5f);
-            questNotificationText.gameObject.SetActive(false);
         }
     }
 
@@ -721,7 +723,6 @@ public class GameManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
-
 
     void HandleVRMovement()
     {
