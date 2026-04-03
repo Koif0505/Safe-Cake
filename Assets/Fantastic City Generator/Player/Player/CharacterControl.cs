@@ -120,17 +120,10 @@ namespace FCG
             Vector3 forward = transform.forward;
             Vector3 right = transform.right;
 
-            if (cam != null)
-            {
-                forward = cam.forward;
-                right = cam.right;
-
-                forward.y = 0f;
-                right.y = 0f;
-
-                forward.Normalize();
-                right.Normalize();
-            }
+            forward.y = 0f;
+            right.y = 0f;
+            forward.Normalize();
+            right.Normalize();
 
             Vector3 move = Vector3.zero;
 
