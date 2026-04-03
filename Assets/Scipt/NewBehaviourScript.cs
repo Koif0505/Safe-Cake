@@ -184,7 +184,6 @@ public class ControllerFullProbe : MonoBehaviour
                 Debug.Log($"KEY DOWN -> {key}");
             }
         }
-
         if (Input.anyKeyDown)
         {
             Debug.Log("ANY KEY DOWN detected");
