@@ -11,8 +11,8 @@ namespace FCG
         public float jumpHeight = 1.2f;
         public float gravity = -20f;
 
-        [Header("PC Look Settings")]
-        public float mouseSensitivity = 100f;
+        [Header("Look Settings")]
+        public float verticalClamp = 70f;
 
         [Header("Audio & Effects")]
         public AudioClip LandingAudioClip;
@@ -27,10 +27,14 @@ namespace FCG
         private CharacterController controller;
         private Vector3 velocity;
         private bool isGrounded;
-        private float _animationBlend;
+        private float animationBlend;
         private float xRotation = 0f;
 
-        private int _animIDSpeed, _animIDGrounded, _animIDJump, _animIDFreeFall, _animIDMotionSpeed;
+        private int animIDSpeed;
+        private int animIDGrounded;
+        private int animIDJump;
+        private int animIDFreeFall;
+        private int animIDMotionSpeed;
 
         void Start()
         {
@@ -46,27 +50,27 @@ namespace FCG
 
         void Update()
         {
-            if (GameManager.Instance != null && (!GameManager.Instance.isGameStarted || GameManager.Instance.IsGameEnded)) return;
+            if (GameManager.Instance != null && (!GameManager.Instance.isGameStarted || GameManager.Instance.IsGameEnded))
+                return;
 
-            HandlePCLook();
+            HandleLook();
             HandleMovement();
             SyncAnimator();
         }
 
-        void HandlePCLook()
+        void HandleLook()
         {
-#if UNITY_EDITOR || UNITY_STANDALONE
-            // Chỉ PC mới dùng chuột xoay Camera. Mobile VR thì Cardboard tự lo phần xoay Camera.
-            if (cam == null) return;
-            float mouseX = Input.GetAxisRaw("Mouse X") * mouseSensitivity * Time.deltaTime;
-            float mouseY = Input.GetAxisRaw("Mouse Y") * mouseSensitivity * Time.deltaTime;
+            if (cam == null || UnifiedPlayerInput.Instance == null)
+                return;
 
-            xRotation -= mouseY;
-            xRotation = Mathf.Clamp(xRotation, -70f, 70f);
+            float lookX = UnifiedPlayerInput.Instance.GetLookX(Time.deltaTime);
+            float lookY = UnifiedPlayerInput.Instance.GetLookY(Time.deltaTime);
+
+            xRotation -= lookY;
+            xRotation = Mathf.Clamp(xRotation, -verticalClamp, verticalClamp);
 
             cam.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-            transform.Rotate(Vector3.up * mouseX);
-#endif
+            transform.Rotate(Vector3.up * lookX);
         }
 
         void HandleMovement()
@@ -75,89 +79,88 @@ namespace FCG
             if (isGrounded && velocity.y < 0f)
             {
                 velocity.y = -2f;
-                if (animator != null) animator.SetBool(_animIDJump, false);
+                if (animator != null) animator.SetBool(animIDJump, false);
             }
 
-            // LẤY HƯỚNG TỪ CAMERA (Áp dụng cho cả PC và VR)
             Vector3 forward = cam != null ? cam.forward : transform.forward;
             Vector3 right = cam != null ? cam.right : transform.right;
 
-            // QUAN TRỌNG: Bỏ trục Y và Normalize để sải bước luôn dài và nhanh y hệt PC
             forward.y = 0f;
             right.y = 0f;
             forward.Normalize();
             right.Normalize();
 
             Vector3 move = Vector3.zero;
+            UnifiedPlayerInput input = UnifiedPlayerInput.Instance;
 
-            // D = ĐI TỚI
-            if (Input.GetKey(KeyCode.JoystickButton3) || Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
-                move += forward;
-
-            // B = TRÁI
-            if (Input.GetKey(KeyCode.JoystickButton1) || Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
-                move -= right;
-
-            // A = PHẢI
-            if (Input.GetKey(KeyCode.JoystickButton0) || Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
-                move += right;
+            if (input != null)
+            {
+                if (input.ForwardHeld()) move += forward;
+                if (input.LeftHeld()) move -= right;
+                if (input.RightHeld()) move += right;
+            }
+            else
+            {
+                if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W)) move += forward;
+                if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A)) move -= right;
+                if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D)) move += right;
+            }
 
             if (move.magnitude > 1f) move.Normalize();
 
             float targetSpeed = Input.GetKey(KeyCode.LeftShift) ? moveSpeed * runMultiplier : moveSpeed;
             if (move == Vector3.zero) targetSpeed = 0f;
 
-            // Di chuyển nhân vật
             controller.Move(move * targetSpeed * Time.deltaTime);
 
-            // XOAY MODEL NHÂN VẬT (Chỉ xoay hình ảnh 3D, không xoay Camera để tránh lỗi chóng mặt VR)
             if (move != Vector3.zero && animator != null)
             {
                 Quaternion targetRotation = Quaternion.LookRotation(move, Vector3.up);
                 animator.transform.rotation = Quaternion.Slerp(animator.transform.rotation, targetRotation, Time.deltaTime * 12f);
             }
 
-            // C = NHẢY
-            bool jumpPressed = Input.GetKeyDown(KeyCode.JoystickButton2) || Input.GetKeyDown(KeyCode.Space);
+            bool jumpPressed = input != null
+                ? input.JumpPressedThisFrame()
+                : Input.GetKeyDown(KeyCode.Space);
+
             if (jumpPressed && isGrounded)
             {
                 velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-                if (animator != null) animator.SetBool(_animIDJump, true);
+                if (animator != null) animator.SetBool(animIDJump, true);
             }
 
-            // Rơi xuống
             velocity.y += gravity * Time.deltaTime;
             controller.Move(velocity * Time.deltaTime);
 
-            _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
+            animationBlend = Mathf.Lerp(animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
         }
 
         void SyncAnimator()
         {
             if (animator == null) return;
-            animator.SetFloat(_animIDSpeed, _animationBlend);
-            animator.SetBool(_animIDGrounded, isGrounded);
-            animator.SetFloat(_animIDMotionSpeed, 1f);
-            animator.SetBool(_animIDFreeFall, !isGrounded && velocity.y < -5f);
+            animator.SetFloat(animIDSpeed, animationBlend);
+            animator.SetBool(animIDGrounded, isGrounded);
+            animator.SetFloat(animIDMotionSpeed, 1f);
+            animator.SetBool(animIDFreeFall, !isGrounded && velocity.y < -5f);
         }
 
-        private void AssignAnimationIDs()
+        void AssignAnimationIDs()
         {
-            _animIDSpeed = Animator.StringToHash("Speed");
-            _animIDGrounded = Animator.StringToHash("Grounded");
-            _animIDJump = Animator.StringToHash("Jump");
-            _animIDFreeFall = Animator.StringToHash("FreeFall");
-            _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
+            animIDSpeed = Animator.StringToHash("Speed");
+            animIDGrounded = Animator.StringToHash("Grounded");
+            animIDJump = Animator.StringToHash("Jump");
+            animIDFreeFall = Animator.StringToHash("FreeFall");
+            animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
         }
 
         public void Jump()
         {
             if (!controller.isGrounded) return;
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-            if (animator != null) animator.SetBool(_animIDJump, true);
+            if (animator != null) animator.SetBool(animIDJump, true);
         }
 
-        private void OnFootstep(AnimationEvent animationEvent)
+        void OnFootstep(AnimationEvent animationEvent)
         {
             if (animationEvent.animatorClipInfo.weight > 0.5f && FootstepAudioClips != null && FootstepAudioClips.Length > 0)
             {
@@ -166,7 +169,7 @@ namespace FCG
             }
         }
 
-        private void OnLand(AnimationEvent animationEvent)
+        void OnLand(AnimationEvent animationEvent)
         {
             if (animationEvent.animatorClipInfo.weight > 0.5f && LandingAudioClip != null)
             {
