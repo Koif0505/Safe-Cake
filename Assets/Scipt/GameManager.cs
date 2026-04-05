@@ -244,7 +244,7 @@ public class GameManager : MonoBehaviour
             inputHandled = true;
         }
 
-        if (Mathf.Abs(hAxis) < 0.1f && Mathf.Abs(vAxis) < 0.1f && !Input.anyKey)
+        if (Mathf.Abs(hAxis) < 0.1f && Mathf.Abs(vAxis) < 0.1f)
         {
             inputHandled = false;
         }
@@ -403,6 +403,7 @@ public class GameManager : MonoBehaviour
         Cursor.visible = false;
 
         if (attackingCar != null) attackingCar.StopAndDestroy();
+        if (assassinCar != null) assassinCar.SetActive(false);
 
         UpdateUI();
     }
@@ -737,6 +738,12 @@ public class GameManager : MonoBehaviour
                 if (startBraking)
                 {
                     currentSpeed = Mathf.Lerp(currentSpeed, 0f, Time.deltaTime * brakeIntensity);
+                }
+
+                if (distanceToPlayer < 2.5f && !IsGameEnded)
+                {
+                    ImmediateLoseGame("BẠN VỪA BỊ XE TÔNG TRÚNG!");
+                    break;
                 }
 
                 yield return null;

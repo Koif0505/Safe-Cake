@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace FCG
 {
@@ -65,6 +65,10 @@ namespace FCG
             if (Input.GetKey(KeyCode.JoystickButton3) || Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
                 move += transform.forward;
 
+            // Lùi lại (S hoặc DownArrow)
+            if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
+                move -= transform.forward;
+
             // B - Sang trái (JoystickButton1 hoặc A)
             if (Input.GetKey(KeyCode.JoystickButton1) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
                 move -= transform.right;
@@ -100,6 +104,11 @@ namespace FCG
             animator.SetFloat(_animIDSpeed, _animationBlend);
             animator.SetBool(_animIDGrounded, isGrounded);
             animator.SetBool(_animIDFreeFall, !isGrounded && velocity.y < -5f);
+            
+            if (isGrounded && velocity.y <= 0f)
+            {
+                animator.SetBool(_animIDJump, false);
+            }
         }
 
         private void AssignAnimationIDs()

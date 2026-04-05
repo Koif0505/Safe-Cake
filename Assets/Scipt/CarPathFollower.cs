@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 
 public class CarPathFollower : MonoBehaviour
@@ -80,6 +80,20 @@ public class CarPathFollower : MonoBehaviour
             if (Vector3.Distance(transform.position, waypoints[2].position) < 0.5f)
             {
                 isMoving = false;
+            }
+        }
+
+        if (GameManager.Instance != null && GameManager.Instance.playerTransform != null && !GameManager.Instance.IsGameEnded)
+        {
+            float dist = Vector3.Distance(transform.position, GameManager.Instance.playerTransform.position);
+            if (dist < 3.0f)
+            {
+                isMoving = false;
+                if (crashSoundSource != null && crashSoundSource.clip != null)
+                {
+                    crashSoundSource.PlayOneShot(crashSoundSource.clip);
+                }
+                GameManager.Instance.ImmediateLoseGame("BẠN VỪA BỊ XE TÔNG TRÚNG!");
             }
         }
     }
